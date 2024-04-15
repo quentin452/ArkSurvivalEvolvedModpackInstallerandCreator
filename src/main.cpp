@@ -1,5 +1,12 @@
-#include <iostream>
+#include <QApplication>
 
-int main(int, char**){
-    std::cout << "Hello, from ArkSurvivalEvolvedModpackInstallerAndCreator!\n";
+#include <mainwindow.h>
+
+int main(int argc, char* argv[]) {
+	QApplication app(argc, argv);
+
+	MainWindow* window = new MainWindow();
+	window->show();
+
+	return app.exec();
 }

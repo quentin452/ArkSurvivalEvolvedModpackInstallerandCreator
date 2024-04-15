@@ -1,0 +1,34 @@
+#include <QApplication>
+#include <QFile>
+#include <QGuiApplication>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QUrl>
+
+int main(int argc, char *argv[]) {
+
+// todo made this not hardcoded
+  QCoreApplication::addLibraryPath("C:/Qt/6.7.0/msvc2019_64/plugins");
+
+  QGuiApplication app(argc, argv);
+  //QApplication app(argc, argv);
+
+  QNetworkAccessManager manager;
+  /*  QNetworkReply *response =
+    manager.get(QNetworkRequest(QUrl("https://steamcommunity.com/sharedfiles/filedetails/?id=mod_id")));
+    QObject::connect(response, &QNetworkReply::finished, & {
+        if (response->error()) {
+            // Gérer l'erreur
+        } else {
+            QFile file("/chemin/vers/votre/jeu/mod_id.mod");
+            if (file.open(QIODevice::WriteOnly)) {
+                file.write(response->readAll());
+                file.close();
+            }
+        }
+        response->deleteLater();
+    });
+    */
+
+  return app.exec();
+}
