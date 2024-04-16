@@ -40,80 +40,82 @@ void MainWindow::onBrowseButtonClicked() {
 }
 
 void MainWindow::downloadMods(QString path, QStringList modIDs) {
-    foreach (QString modID, modIDs) {
-        try {
-            QString depotPath = path + "/depotcache/" + modID + "/" + modID + ".zip";
-            QString extractedPath = path + "/Mods/" + modID;
+  foreach (QString modID, modIDs) {
+    try {
+      QString depotPath = path + "/depotcache/" + modID + "/" + modID + ".zip";
+      QString extractedPath = path + "/Mods/" + modID;
 
-            // Log de début du téléchargement du mod
-            ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-                LogLevel::INFO, "Downloading mod with ID: " + modID.toStdString());
+      // Log de début du téléchargement du mod
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+          LogLevel::INFO, __FILE__, __LINE__,
+          "Downloading mod with ID: " + modID.toStdString());
 
-            // Créez un objet QProcess
-            QProcess *process = new QProcess(this);
+      // Créez un objet QProcess
+      QProcess *process = new QProcess(this);
 
-            // Connectez les signaux et les slots pour gérer la sortie de la commande
-            connect(
-                process,
-                QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-                [=](int exitCode, QProcess::ExitStatus exitStatus) {
-                    if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-                        // Log de réussite de l'installation du mod
-                        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-                            LogLevel::INFO, "Mod with ID " + modID.toStdString() +
-                            " installed successfully");
+      // Connectez les signaux et les slots pour gérer la sortie de la commande
+      connect(
+          process,
+          QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+          [=](int exitCode, QProcess::ExitStatus exitStatus) {
+            if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
+              // Log de réussite de l'installation du mod
+              ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+                  LogLevel::INFO, __FILE__, __LINE__,
+                  "Mod with ID " + modID.toStdString() +
+                      " installed successfully");
 
-                        // Lancez le processus de décompression ici uniquement si le téléchargement a réussi
-                        QProcess *unzipProcess = new QProcess(this);
-                        QString unzipCmd =
-                            "unzip \"" + depotPath + "\" -d \"" + extractedPath + "\"";
-                        unzipProcess->start(unzipCmd);
-                        connect(
-                            unzipProcess, &QProcess::finished,
-                            [=](int unzipExitCode, QProcess::ExitStatus unzipExitStatus) {
-                                if (unzipExitCode == 0 && unzipExitStatus == QProcess::NormalExit) {
-                                    // Log de réussite de la décompression du mod
-                                    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-                                        LogLevel::INFO, "Mod with ID " + modID.toStdString() +
-                                        " unzipped successfully");
+              // Lancez le processus de décompression ici uniquement si le
+              // téléchargement a réussi
+              QProcess *unzipProcess = new QProcess(this);
+              QString unzipCmd =
+                  "unzip \"" + depotPath + "\" -d \"" + extractedPath + "\"";
+              unzipProcess->start(unzipCmd);
+              connect(
+                  unzipProcess, &QProcess::finished,
+                  [=](int unzipExitCode, QProcess::ExitStatus unzipExitStatus) {
+                    if (unzipExitCode == 0 &&
+                        unzipExitStatus == QProcess::NormalExit) {
+                      // Log de réussite de la décompression du mod
+                      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+                          LogLevel::INFO, __FILE__, __LINE__,
+                          "Mod with ID " + modID.toStdString() +
+                              " unzipped successfully");
 
-                                }
-                                else {
-                                    // Log d'échec de la décompression du mod
-                                    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-                                        LogLevel::ERROR,
-                                        "Failed to unzip mod with ID " + modID.toStdString());
-                                }
-                                unzipProcess->deleteLater();
-                            });
+                    } else {
+                      // Log d'échec de la décompression du mod
+                      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+                          LogLevel::ERROR, __FILE__, __LINE__,
+                          "Failed to unzip mod with ID " + modID.toStdString());
                     }
-                    else {
-                        // Log d'échec de l'installation du mod
-                        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-                            LogLevel::ERROR,
-                            "Failed to install mod with ID " + modID.toStdString());
-                    }
-                    process->deleteLater();
-                });
+                    unzipProcess->deleteLater();
+                  });
+            } else {
+              // Log d'échec de l'installation du mod
+              ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+                  LogLevel::ERROR, __FILE__, __LINE__,
+                  "Failed to install mod with ID " + modID.toStdString());
+            }
+            process->deleteLater();
+          });
 
-            // Exécutez la commande steamcmd
-            QString cmd = "steamcmd +login anonymous +force_install_dir \"" + path +
-                "\" +download_depot 346110 " + modID;
-            process->start(cmd);
+      // Exécutez la commande steamcmd
+      QString cmd = "steamcmd +login anonymous +force_install_dir \"" + path +
+                    "\" +download_depot 346110 " + modID;
+      process->start(cmd);
 
-        }
-        catch (const std::exception &e) {
-            ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-                LogLevel::ERROR, "An error occurred while executing the command: " +
-                std::string(e.what()));
-        }
-
+    } catch (const std::exception &e) {
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+          LogLevel::ERROR, __FILE__, __LINE__,
+          "An error occurred while executing the command: " +
+              std::string(e.what()));
     }
+  }
 }
 
 void MainWindow::onInstallButtonClicked() {
-  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO,
-                                                      "Install Mods...");
+  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+      LogLevel::INFO, __FILE__, __LINE__, "Install Mods...");
   QString path = lineEdit->text();
   QString mods = modsLineEdit->text();
 

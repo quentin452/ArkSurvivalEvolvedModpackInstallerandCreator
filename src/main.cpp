@@ -10,6 +10,9 @@
 int main(int argc, char *argv[]) {
   LoggerGlobals::UsernameDirectory = std::getenv("USERNAME");
 
+  // this is the folder that contain your src files like main.cpp
+  LoggerGlobals::SrcProjectDirectory = "src";
+
   // Create Log File and folder
   LoggerGlobals::LogFolderPath = "C:\\Users\\" +
                                  LoggerGlobals::UsernameDirectory +
@@ -30,12 +33,12 @@ int main(int argc, char *argv[]) {
       LoggerGlobals::LogFolderBackupPath, LoggerGlobals::LogFileBackupPath);
 
   // Log messages after starting the logger thread
-  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO,
-                                                      "logger test");
-  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO,
-                                                      "logger test2");
-  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO,
-                                                      "logger test3");
+  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO, __FILE__,
+                                                      __LINE__, "logger test");
+  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO, __FILE__,
+                                                      __LINE__, "logger test2");
+  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO, __FILE__,
+                                                      __LINE__, "logger test3");
 
   QApplication app(argc, argv);
 
@@ -44,8 +47,8 @@ int main(int argc, char *argv[]) {
     window->show();
 
     QObject::connect(&app, &QApplication::aboutToQuit, [&]() {
-      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO,
-                                                          "logger test4");
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+          LogLevel::INFO, __FILE__, __LINE__, "logger test4");
       ArkSEModpackGlobals::LoggerInstance.ExitLoggerThread();
     });
 

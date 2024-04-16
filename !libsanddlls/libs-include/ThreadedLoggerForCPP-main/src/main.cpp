@@ -15,6 +15,8 @@ int main(int argc, char *args[]) {
   // Collect Your UserName from C:\Users
   LoggerGlobals::UsernameDirectory = std::getenv("USERNAME");
 
+  // this is the folder that contain your src files like main.cpp
+  LoggerGlobals::SrcProjectDirectory = "src";
   // Create Log File and folder
   LoggerGlobals::LogFolderPath = "C:\\Users\\" +
                                  LoggerGlobals::UsernameDirectory +
@@ -37,9 +39,10 @@ int main(int argc, char *args[]) {
   while (true) {
     // Log messages
     LuaCraftGlobals::LoggerInstance.logMessageAsync(
-        LogLevel::INFO, "Test Value: " + std::to_string(test));
-    LuaCraftGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO,
-                                                    "Finish Loop...");
+        LogLevel::INFO, __FILE__, __LINE__,
+        "Test Value: " + std::to_string(test));
+    LuaCraftGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO, __FILE__,
+                                                    __LINE__, "Finish Loop...");
 
     // Wait for some time before checking again
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
