@@ -52,7 +52,6 @@ if (WIN32)
 elseif(UNIX)
     add_executable(${PROJECT_NAME} ${SOURCES})
 endif()
-
 # Add the target includes for ArkModIC 
 target_include_directories(${PROJECT_NAME} PRIVATE ${ALL_INCLUDE_DIR} ${FORMS_DIR} ${INCLUDE_DIR} ${SOURCE_DIR})
 

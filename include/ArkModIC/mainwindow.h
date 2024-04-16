@@ -3,7 +3,7 @@
 
 #include <QLineEdit>
 #include <QMainWindow>
-
+#include <QProcess>
 namespace Ui {
 class MainWindow;
 }
@@ -17,12 +17,16 @@ public:
   bool onPushButtonClicked();
   void onBrowseButtonClicked();
   void downloadMods(QString path, QStringList modIDs);
+  void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
+  void onCopyProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
   void onInstallButtonClicked();
 
 private:
   Ui::MainWindow *ui;
-  QLineEdit *lineEdit; 
+  QLineEdit *lineEdit;
   QLineEdit *modsLineEdit;
+  std::string LogFilePathForTheThread;
+  QString path;
 };
 
 #endif // MAINWINDOW_H
