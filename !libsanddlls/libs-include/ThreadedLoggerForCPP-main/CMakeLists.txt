@@ -1,66 +1,42 @@
 cmake_minimum_required(VERSION 3.28)
-if (WIN32)
-    project(ArkModIC LANGUAGES CXX)
-elseif(UNIX)
-    project(ArkModIC)
-endif()
-set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
-set(LIBRAIRIES_DIR "${CMAKE_SOURCE_DIR}/!libsanddlls/libs-include")
-set(ALL_INCLUDE_DIR "${LIBRAIRIES_DIR}/ThreadedLoggerForCPP-main/libs/include")
+project(ThreadedLoggerForCPP VERSION 0.1.0 LANGUAGES C CXX)
 
-set(SOURCES_FILES ${SOURCES})
+include(CTest)
+enable_testing()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
-#======================= INCLUSION OF Qt =======================#
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_PREFIX_PATH $ENV{QTDIR})
-find_package(Qt6 COMPONENTS Core Network Widgets REQUIRED)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRTD")
 
-#=================== INCLUSION OF Project Files ====================#
-set(FORMS_DIR "${CMAKE_SOURCE_DIR}/forms")
-set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
-set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
+# Enable LTO Optimizations(Link-Time Optimization) 
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 
-include_directories(${FORMS_DIR})
-include_directories(${INCLUDE_DIR})
-include_directories(${SOURCE_DIR})
+# Set common directories
+set(DLL_DIR "${CMAKE_SOURCE_DIR}/libsanddlls/dlls")
+set(LIB_DIR "${CMAKE_SOURCE_DIR}/libsanddlls/libs")
+set(LIBRAIRIES_DIR "${CMAKE_SOURCE_DIR}")
+set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 
-file(GLOB_RECURSE SOURCES
-    "${FORMS_DIR}/*.ui"
-    "${FORMS_DIR}/*.qrc"
-    "${INCLUDE_DIR}/*.h"
-    "${SOURCE_DIR}/*.cpp"
+# Find source files
+file(GLOB_RECURSE SOURCES "${SRC_DIR}/*.cpp" "${SRC_DIR}/*.h" "${SRC_DIR}/*.hpp")
+
+set(SOURCES_FILES ${SOURCES})
+
+# External libraries include directories
+set(ALL_INCLUDE_DIR
+"${LIBRAIRIES_DIR}/libs/include"
 )
 
-#=================== SETUP EXECTUABLE ====================#
-# Enable debug logging on RELWITHDEBINFO configuration
-set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-    $<$<CONFIG:RELWITHDEBINFO>:QT_MESSAGELOGCONTEXT>
-)
+# Add executable
+add_executable(${PROJECT_NAME} ${SOURCES})
 
-# Add the forms directory to the AUTOUIC search paths
-set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${FORMS_DIR})
-
-# Add the executable
-if (WIN32) 
-    add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
-elseif(UNIX)
-    add_executable(${PROJECT_NAME} ${SOURCES})
-endif()
-
-# Add the target includes for ArkModIC 
-target_include_directories(${PROJECT_NAME} PRIVATE ${ALL_INCLUDE_DIR} ${FORMS_DIR} ${INCLUDE_DIR} ${SOURCE_DIR})
-
-#===================== LINKING LIBRARIES =======================#
-target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Network Qt6::Widgets)
+# Target include directories
+target_include_directories(${PROJECT_NAME} PUBLIC ${ALL_INCLUDE_DIR})
 
 
-#===================== GENERATE COMPILATIONS DATABASE =======================#
+# Common compilation options
 set(common_compile_options
    -std=c++${CMAKE_CXX_STANDARD}
    -Wall 
