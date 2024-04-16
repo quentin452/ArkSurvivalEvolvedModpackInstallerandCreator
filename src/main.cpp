@@ -13,22 +13,30 @@ int main(int argc, char *argv[]) {
   // Create Log File and folder
   LoggerGlobals::LogFolderPath = "C:\\Users\\" +
                                  LoggerGlobals::UsernameDirectory +
-                                 "\\.ThreadedLoggerForCPPTest\\logging\\";
-  LoggerGlobals::LogFilePath =
-      "C:\\Users\\" + LoggerGlobals::UsernameDirectory +
-      "\\.ThreadedLoggerForCPPTest\\logging\\LuaCraftCPP.log";
-  LoggerGlobals::LogFolderBackupPath =
-      "C:\\Users\\" + LoggerGlobals::UsernameDirectory +
-      "\\.ThreadedLoggerForCPPTest\\logging\\LogBackup";
+                                 "\\.ArkModIC\\logging\\";
+  LoggerGlobals::LogFilePath = "C:\\Users\\" +
+                               LoggerGlobals::UsernameDirectory +
+                               "\\.ArkModIC\\logging\\ArkModIC.log";
+  LoggerGlobals::LogFolderBackupPath = "C:\\Users\\" +
+                                       LoggerGlobals::UsernameDirectory +
+                                       "\\.ArkModIC\\logging\\LogBackup";
   LoggerGlobals::LogFileBackupPath =
       "C:\\Users\\" + LoggerGlobals::UsernameDirectory +
-      "\\.ThreadedLoggerForCPPTest\\logging\\LogBackup\\LuaCraftCPP-";
+      "\\.ArkModIC\\logging\\LogBackup\\ArkModIC-";
 
+  // Start the logger thread
   ArkSEModpackGlobals::LoggerInstance.StartLoggerThread(
       LoggerGlobals::LogFolderPath, LoggerGlobals::LogFilePath,
       LoggerGlobals::LogFolderBackupPath, LoggerGlobals::LogFileBackupPath);
+
+  // Log messages after starting the logger thread
   ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO,
                                                       "logger test");
+  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO,
+                                                      "logger test2");
+  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO,
+                                                      "logger test3");
+
   QApplication app(argc, argv);
 
   try {
@@ -36,6 +44,8 @@ int main(int argc, char *argv[]) {
     window->show();
 
     QObject::connect(&app, &QApplication::aboutToQuit, [&]() {
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO,
+                                                          "logger test4");
       ArkSEModpackGlobals::LoggerInstance.ExitLoggerThread();
     });
 

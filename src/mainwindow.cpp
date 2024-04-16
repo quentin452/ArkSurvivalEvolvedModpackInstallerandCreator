@@ -1,13 +1,17 @@
-#include <ArkModIC/mainwindow.h>
 #include "ui_mainwindow.h"
+#include <ArkModIC/mainwindow.h>
 #include <QDebug>
 #include <QDir>
 #include <QFileDialog>
 #include <QProcess>
+#include <ArkModIC/ArkSEModpackGlobals.h>
+#include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
+#include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
+#include <ThreadedLoggerForCPP/LoggerThread.hpp>
 #include <iostream>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
-std::cout << "Construct MainWindow" << std::endl;
+  std::cout << "Construct MainWindow" << std::endl;
   ui->setupUi(this);
   lineEdit = this->findChild<QLineEdit *>("lineEdit");
   modsLineEdit = this->findChild<QLineEdit *>("modsLineEdit");
@@ -36,51 +40,58 @@ void MainWindow::onBrowseButtonClicked() {
 }
 
 void MainWindow::downloadMods(QString path, QStringList modIDs) {
-    foreach (QString modID, modIDs) {
-        try {
-            QString depotPath = path + "/depotcache/" + modID + "/" + modID + ".zip";
-            QString extractedPath = path + "/Mods/" + modID;
+  foreach (QString modID, modIDs) {
+    try {
+      QString depotPath = path + "/depotcache/" + modID + "/" + modID + ".zip";
+      QString extractedPath = path + "/Mods/" + modID;
 
-            // Créez un objet QProcess
-            QProcess *process = new QProcess(this);
+      // Créez un objet QProcess
+      QProcess *process = new QProcess(this);
 
-            // Connectez les signaux et les slots pour gérer la sortie de la commande
-            connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-                    [=](int exitCode, QProcess::ExitStatus exitStatus) {
-                        if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-                            qDebug() << "Mod with ID" << modID << "installed successfully";
-                            // Lancez le processus de décompression ici
-                            QProcess *unzipProcess = new QProcess(this);
-                            QString unzipCmd = "unzip \"" + depotPath + "\" -d \"" + extractedPath + "\"";
-                            unzipProcess->start(unzipCmd);
-                            connect(unzipProcess, &QProcess::finished, [=](int exitCode, QProcess::ExitStatus exitStatus) {
-                                if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-                                    qDebug() << "Mod with ID" << modID << "unzipped successfully";
-                                } else {
-                                    qDebug() << "Failed to unzip mod with ID" << modID;
-                                }
-                                unzipProcess->deleteLater();
-                            });
+      // Connectez les signaux et les slots pour gérer la sortie de la commande
+      connect(
+          process,
+          QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+          [=](int exitCode, QProcess::ExitStatus exitStatus) {
+            if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
+              qDebug() << "Mod with ID" << modID << "installed successfully";
+              // Lancez le processus de décompression ici
+              QProcess *unzipProcess = new QProcess(this);
+              QString unzipCmd =
+                  "unzip \"" + depotPath + "\" -d \"" + extractedPath + "\"";
+              unzipProcess->start(unzipCmd);
+              connect(unzipProcess, &QProcess::finished,
+                      [=](int exitCode, QProcess::ExitStatus exitStatus) {
+                        if (exitCode == 0 &&
+                            exitStatus == QProcess::NormalExit) {
+                          qDebug() << "Mod with ID" << modID
+                                   << "unzipped successfully";
                         } else {
-                            qDebug() << "Failed to install mod with ID" << modID;
+                          qDebug() << "Failed to unzip mod with ID" << modID;
                         }
-                        process->deleteLater();
-                    });
+                        unzipProcess->deleteLater();
+                      });
+            } else {
+              qDebug() << "Failed to install mod with ID" << modID;
+            }
+            process->deleteLater();
+          });
 
-            // Exécutez la commande steamcmd
-            QString cmd = "steamcmd +login anonymous +force_install_dir \"" + path + "\" +download_depot 346110 " + modID;
-            process->start(cmd);
+      // Exécutez la commande steamcmd
+      QString cmd = "steamcmd +login anonymous +force_install_dir \"" + path +
+                    "\" +download_depot 346110 " + modID;
+      process->start(cmd);
 
-        } catch (const std::exception &e) {
-            qDebug() << "An error occurred while executing the command:" << e.what();
-            // Gérer l'erreur ici
-        }
+    } catch (const std::exception &e) {
+      qDebug() << "An error occurred while executing the command:" << e.what();
+      // Gérer l'erreur ici
     }
+  }
 }
 
-
 void MainWindow::onInstallButtonClicked() {
-
+  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(LogLevel::INFO,
+                                                      "Install Mods...");
   QString path = lineEdit->text();
   QString mods = modsLineEdit->text();
 
