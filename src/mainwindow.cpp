@@ -1,10 +1,10 @@
 #include "ui_mainwindow.h"
+#include <ArkModIC/ArkSEModpackGlobals.h>
 #include <ArkModIC/mainwindow.h>
 #include <QDebug>
 #include <QDir>
 #include <QFileDialog>
 #include <QProcess>
-#include <ArkModIC/ArkSEModpackGlobals.h>
 #include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
 #include <ThreadedLoggerForCPP/LoggerThread.hpp>
