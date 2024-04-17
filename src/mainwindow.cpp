@@ -2,8 +2,9 @@
 // TODO : ADD CONFIG FILE TO SAVE THINGS SUCH HAS COCHE CASE AND GAME DIRECTORIE
 // TODO : ADD steamid mod LIST BACKUP
 // TODO : REMAKE UI
-// TODO : ADD informations to know how many space take backups / mods folder
-// from the game
+// TODO : ADD informations to know how many space take every mods
+// TODO : ADD A WAY TO KNOW WHICH MOD IS THIS ID BY EXAMPLE 2715085686 by making
+// a list (gui) of installed mods in your Ark Survival Evolved GamePath
 #include "ui_mainwindow.h"
 #include <ArkModIC/ArkSEModpackGlobals.h>
 #include <ArkModIC/mainwindow.h>
@@ -11,8 +12,10 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QMessageBox>
 #include <QProcess>
+#include <QStorageInfo>
 #include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
 #include <ThreadedLoggerForCPP/LoggerThread.hpp>
@@ -22,6 +25,8 @@
 #include <windows.h>
 int DirRecursivityRemovalDepth = 3;
 int depotOfArkSurvivalEvolvedOnSteam = 346110;
+quint64 getFolderSize(const QString &folderPath);
+QString formatSize(quint64 size);
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
@@ -43,6 +48,8 @@ MainWindow::MainWindow(QWidget *parent)
   connect(gamePathQuery, &QLineEdit::textChanged, this,
           &MainWindow::onGamePathQueryChanged);
   onGamePathQueryChanged(gamePathQuery->text());
+  updateBackupInfo();
+  updateModsInfo();
 }
 MainWindow::~MainWindow() { delete ui; }
 
@@ -148,6 +155,8 @@ void MainWindow::onProcessFinished(int exitCode,
   }
 
   process->deleteLater();
+  updateBackupInfo();
+  updateModsInfo();
   enableButtons();
 }
 void MainWindow::onCopyProcessFinished(int exitCode,
@@ -238,14 +247,12 @@ void MainWindow::enableButtons() {
   }
 }
 void MainWindow::onRemoveModsBackupButtonClicked() {
-  // Afficher une boîte de dialogue de confirmation
   QMessageBox::StandardButton reply;
   reply = QMessageBox::question(
       this, "Supprimer la sauvegarde des mods",
       "Êtes-vous sûr de vouloir supprimer la sauvegarde de tous vos mods ?",
       QMessageBox::Yes | QMessageBox::No);
   if (reply == QMessageBox::Yes) {
-    // Supprimer les mods de sauvegarde
     QString backupFolderPath =
         "C:\\Users\\" +
         QString::fromStdString(LoggerGlobals::UsernameDirectory) +
@@ -283,4 +290,46 @@ void MainWindow::onGamePathQueryChanged(const QString &path) {
   } else {
     ui->warningLabel->clear();
   }
+}
+void MainWindow::updateBackupInfo() {
+  QString backupFolderPath =
+      "C:\\Users\\" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
+      "\\.ArkModIC\\Mods.old\\";
+  quint64 backupSize = getFolderSize(backupFolderPath);
+  QString backupSizeText = formatSize(backupSize);
+  ui->backupSizeLabel->setText("Backup Size from .ArkModIC Folder: " +
+                               backupSizeText);
+}
+
+void MainWindow::updateModsInfo() {
+  QString modsFolderPath = gamePathQuery->text() + "/Mods/";
+  quint64 modsSize = getFolderSize(modsFolderPath);
+  QString modsSizeText = formatSize(modsSize);
+  ui->modsSizeLabel->setText("Mods Size from Ark Surival Evolved: " +
+                             modsSizeText);
+}
+
+quint64 getFolderSize(const QString &folderPath) {
+  quint64 size = 0;
+  QDir dir(folderPath);
+  QFileInfoList list =
+      dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden);
+  foreach (QFileInfo fileInfo, list) {
+    if (fileInfo.isDir()) {
+      size += getFolderSize(fileInfo.absoluteFilePath());
+    } else {
+      size += fileInfo.size();
+    }
+  }
+  return size;
+}
+
+QString formatSize(quint64 size) {
+  QStringList units = {"B", "KB", "MB", "GB"};
+  int unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.size() - 1) {
+    size /= 1024;
+    ++unitIndex;
+  }
+  return QString::number(size) + " " + units[unitIndex];
 }

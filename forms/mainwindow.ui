@@ -88,6 +88,20 @@
             </property>
           </widget>
         </item>
+        <item row="6" column="0">
+          <widget class="QLabel" name="backupSizeLabel">
+            <property name="text">
+              <string>Backup Size from .ArkModIC Folder</string>
+            </property>
+          </widget>
+        </item>
+        <item row="6" column="1">
+          <widget class="QLabel" name="modsSizeLabel">
+            <property name="text">
+              <string>Mods Size from Ark Surival Evolved:</string>
+            </property>
+          </widget>
+        </item>
       </layout>
     </widget>
     <widget class="QMenuBar" name="menubar">

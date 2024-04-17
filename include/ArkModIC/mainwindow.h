@@ -22,6 +22,8 @@ public:
   void disableButtons();
   void enableButtons();
   void onRemoveModsBackupButtonClicked();
+  void updateBackupInfo();
+  void updateModsInfo();
   void onGamePathQueryChanged(const QString &path);
   bool copyRecursively(const QString &srcPath, const QString &dstPath);
 
