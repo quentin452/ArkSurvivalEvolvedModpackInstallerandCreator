@@ -85,6 +85,9 @@ void MainWindow::downloadMods(QString path, QStringList modIDs) {
     process->setArguments(arguments);
     process->setWorkingDirectory(path);
     connect(process, &QProcess::finished, this, &MainWindow::onProcessFinished);
+    connect(process,
+            QOverload<QProcess::ProcessError>::of(&QProcess::errorOccurred),
+            this, &MainWindow::onProcessErrorOccurred);
     process->start();
   } catch (const std::exception &e) {
     ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
@@ -108,6 +111,7 @@ void MainWindow::onProcessFinished(int exitCode,
       ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
           LogLevel::ERRORING, __FILE__, __LINE__,
           "Source directory does not exist: " + sourcePath.toStdString());
+      enableButtons();
       return;
     }
     QString destPath = this->path + "/Mods/";
@@ -192,6 +196,7 @@ void MainWindow::onInstallButtonClicked() {
             LogLevel::ERRORING, __FILE__, __LINE__,
             "Failed to create backup folder: " +
                 backupFolderPath.toStdString());
+        enableButtons();
         return;
       }
     }
@@ -205,6 +210,7 @@ void MainWindow::onInstallButtonClicked() {
             LogLevel::ERRORING, __FILE__, __LINE__,
             "Failed to create folder for mods backup: " +
                 modsFolderPath.toStdString());
+        enableButtons();
         return;
       }
     }
@@ -215,6 +221,7 @@ void MainWindow::onInstallButtonClicked() {
       ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
           LogLevel::ERRORING, __FILE__, __LINE__,
           "Failed to create mods backup: " + zipFileName.toStdString());
+      enableButtons();
       return;
     }
   }
@@ -226,6 +233,7 @@ void MainWindow::onInstallButtonClicked() {
         ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
             LogLevel::ERRORING, __FILE__, __LINE__,
             "Failed to delete Mods folder: " + modsFolderPath.toStdString());
+        enableButtons();
         return;
       }
     }
@@ -332,4 +340,11 @@ QString formatSize(quint64 size) {
     ++unitIndex;
   }
   return QString::number(size) + " " + units[unitIndex];
+}
+
+void MainWindow::onProcessErrorOccurred(QProcess::ProcessError error) {
+  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+      LogLevel::ERRORING, __FILE__, __LINE__,
+      "Error occurred in SteamCMD process: " + error);
+  enableButtons();
 }

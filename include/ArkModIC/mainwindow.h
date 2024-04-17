@@ -24,8 +24,8 @@ public:
   void onRemoveModsBackupButtonClicked();
   void updateBackupInfo();
   void updateModsInfo();
+  void onProcessErrorOccurred(QProcess::ProcessError error);
   void onGamePathQueryChanged(const QString &path);
-  bool copyRecursively(const QString &srcPath, const QString &dstPath);
 
 private:
   Ui::MainWindow *ui;
