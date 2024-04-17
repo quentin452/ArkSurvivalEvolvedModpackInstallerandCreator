@@ -77,13 +77,13 @@ set(Plugins_List
     # Ajoutez d'autres répertoires de plugins si nécessaire
 )
 
+# Chemin de destination (dossier de sortie de l'exécutable)
+set(Destination_Path "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+
 # Copier les DLLs nécessaires après la construction si elles n'existent pas déjà
 foreach(DLL ${DLL_List})
     # Chemin complet de la DLL
     set(DLL_Path "${Qt_Bin_Path}/${DLL}")
-
-    # Chemin de destination (dossier de sortie de l'exécutable)
-    set(Destination_Path "$<TARGET_FILE_DIR:${PROJECT_NAME}>/${DLL}")
 
     # Copier la DLL uniquement si elle n'existe pas déjà dans le dossier de sortie
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -99,14 +99,11 @@ foreach(Plugin ${Plugins_List})
     # Chemin complet du répertoire de plugins
     set(Plugin_Path "${Qt_Plugins_Path}/${Plugin}")
 
-    # Chemin de destination (dossier de sortie de l'exécutable)
-    set(Destination_Path "$<TARGET_FILE_DIR:${PROJECT_NAME}>/${Plugin}")
-
     # Copier le répertoire de plugins uniquement s'il n'existe pas déjà dans le dossier de sortie
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${Plugin_Path}"
-        "${Destination_Path}"
+        "${Destination_Path}/${Plugin}"
         COMMENT "Copying ${Plugin}"
     )
 endforeach()
