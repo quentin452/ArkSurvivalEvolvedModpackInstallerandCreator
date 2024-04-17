@@ -3,7 +3,7 @@
 // TODO : ADD informations to know how many space take every mods
 // TODO : ADD A WAY TO KNOW WHICH MOD IS THIS ID BY EXAMPLE 2715085686 by making
 // a list (gui) of installed mods in your Ark Survival Evolved GamePath
-// TODO : add a gui that can be used when backuping txts for steam modid
+
 #include "ui_mainwindow.h"
 #include <ArkModIC/ArkModICWindowUtils.h>
 #include <ArkModIC/ArkSEModpackGlobals.h>
@@ -11,6 +11,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
+#include <QTimer>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -62,7 +63,12 @@ MainWindow::MainWindow(QWidget *parent)
           &MainWindow::onDeleteModsCheckBoxStateChanged);
   connect(ui->backupModsCheckBox, &QCheckBox::stateChanged, this,
           &MainWindow::onBackupModsCheckBoxStateChanged);
-
+  connect(ui->modsFileComboBox,
+          QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          &MainWindow::onModsFileSelected);
+  QTimer *timer = new QTimer(this);
+  connect(timer, &QTimer::timeout, this, &MainWindow::update);
+  timer->start(1000);
   ui->warningLabel->setText("");
   ui->warningLabel->setStyleSheet("color: orange");
   ui->warningLabel2->setText("");
@@ -73,11 +79,14 @@ MainWindow::MainWindow(QWidget *parent)
   connect(modsSteamIdListQuery, &QLineEdit::textChanged, this,
           &MainWindow::onModsSteamIdListQueryChanged);
   onModsSteamIdListQueryChanged(modsSteamIdListQuery->text());
-  updateBackupInfo();
-  updateModsInfo();
 }
 MainWindow::~MainWindow() { delete ui; }
 
+void MainWindow::update() {
+  updateBackupInfo();
+  updateModsInfo();
+  updateModsFileComboBox();
+}
 void MainWindow::onDeleteModsCheckBoxStateChanged(int state) {
   bool deleteMods = (state == Qt::Checked);
   bool backupMods = ui->backupModsCheckBox->isChecked();
@@ -230,8 +239,6 @@ void MainWindow::onProcessFinished(int exitCode,
   }
 
   process->deleteLater();
-  updateBackupInfo();
-  updateModsInfo();
   enableButtons();
 }
 void MainWindow::onCopyProcessFinished(int exitCode,
@@ -424,4 +431,35 @@ void MainWindow::onChooseModsFileButtonClicked() {
       file.close();
     }
   }
+}
+
+void MainWindow::loadModIDsFromFile(const QString &filePath) {
+  QFile file(filePath);
+  if (file.open(QIODevice::ReadOnly)) {
+    QTextStream in(&file);
+    QString modIds = in.readAll();
+    modsSteamIdListQuery->setText(modIds);
+    file.close();
+  }
+}
+
+void MainWindow::updateModsFileComboBox() {
+  QString saveFolder = "C:/Users/" + username + "/.ArkModIC/ModsIdsListSave";
+  QDir dir(saveFolder);
+  QStringList filters;
+  filters << "*.txt";
+  QStringList modFiles = dir.entryList(filters, QDir::Files, QDir::Name);
+  QString currentText = ui->modsFileComboBox->currentText();
+
+  ui->modsFileComboBox->clear();
+  ui->modsFileComboBox->addItems(modFiles);
+  if (modFiles.contains(currentText)) {
+    ui->modsFileComboBox->setCurrentText(currentText);
+  }
+}
+
+void MainWindow::onModsFileSelected(int index) {
+  QString saveFolder = "C:/Users/" + username + "/.ArkModIC/ModsIdsListSave";
+  QString filePath = saveFolder + "/" + ui->modsFileComboBox->currentText();
+  loadModIDsFromFile(filePath);
 }
