@@ -24,6 +24,7 @@ public:
   void onRemoveModsBackupButtonClicked();
   void updateBackupInfo();
   void updateModsInfo();
+  void onChooseModsFileButtonClicked();
   void onProcessErrorOccurred(QProcess::ProcessError error);
   void onGamePathQueryChanged(const QString &path);
 
@@ -33,6 +34,7 @@ private:
   QLineEdit *modsSteamIdListQuery;
   std::string LogFilePathForTheThread;
   QString path;
+  QString username; 
 };
 
 #endif // MAINWINDOW_H

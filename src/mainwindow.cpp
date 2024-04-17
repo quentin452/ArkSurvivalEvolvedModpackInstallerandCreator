@@ -1,14 +1,14 @@
 // TODO : ADD DIFFERENT LANGUAGE
 // TODO : ADD CONFIG FILE TO SAVE THINGS SUCH HAS COCHE CASE AND GAME DIRECTORIE
-// TODO : ADD steamid mod LIST BACKUP
 // TODO : REMAKE UI
 // TODO : ADD informations to know how many space take every mods
 // TODO : ADD A WAY TO KNOW WHICH MOD IS THIS ID BY EXAMPLE 2715085686 by making
 // a list (gui) of installed mods in your Ark Survival Evolved GamePath
+// TODO : add a gui that can be used when backuping txts for steam modid
 #include "ui_mainwindow.h"
+#include <ArkModIC/ArkModICWindowUtils.h>
 #include <ArkModIC/ArkSEModpackGlobals.h>
 #include <ArkModIC/mainwindow.h>
-#include <ArkModIC/ArkModICWindowUtils.h>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
@@ -32,9 +32,8 @@ MainWindow::MainWindow(QWidget *parent)
   ui->setupUi(this);
   gamePathQuery = this->findChild<QLineEdit *>("gamePathQuery");
   modsSteamIdListQuery = this->findChild<QLineEdit *>("modsSteamIdListQuery");
-  gamePathQuery->setText(
-      "C:/Users/" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
-      "/Desktop/test");
+  QString username = QString::fromStdString(LoggerGlobals::UsernameDirectory);
+  gamePathQuery->setText("C:/Users/" + username + "/Desktop/test");
   modsSteamIdListQuery->setText("2783538786,2715085686");
   connect(ui->browseButton, &QPushButton::clicked, this,
           &MainWindow::onBrowseButtonClicked);
@@ -42,6 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
           &MainWindow::onInstallButtonClicked);
   connect(ui->removeModsBackupButton, &QPushButton::clicked, this,
           &MainWindow::onRemoveModsBackupButtonClicked);
+  connect(ui->chooseModsFileButton, &QPushButton::clicked, this,
+          &MainWindow::onChooseModsFileButtonClicked);
   ui->warningLabel->setText("");
   ui->warningLabel->setStyleSheet("color: red");
   ui->gridLayout->addWidget(ui->warningLabel, 0, 3, 1, 1);
@@ -183,9 +184,7 @@ void MainWindow::onInstallButtonClicked() {
   if (backupMods) {
     QString modsFolderPath = path + "/Mods/";
     QString backupFolderPath =
-        "C:\\Users\\" +
-        QString::fromStdString(LoggerGlobals::UsernameDirectory) +
-        "\\.ArkModIC\\Mods.old\\";
+        "C:\\Users\\" + username + "\\.ArkModIC\\Mods.old\\";
 
     QDir modsDir(modsFolderPath);
     QDir backupDir(backupFolderPath);
@@ -262,9 +261,7 @@ void MainWindow::onRemoveModsBackupButtonClicked() {
       QMessageBox::Yes | QMessageBox::No);
   if (reply == QMessageBox::Yes) {
     QString backupFolderPath =
-        "C:\\Users\\" +
-        QString::fromStdString(LoggerGlobals::UsernameDirectory) +
-        "\\.ArkModIC\\Mods.old\\";
+        "C:\\Users\\" + username + "\\.ArkModIC\\Mods.old\\";
     QDir backupDir(backupFolderPath);
     if (backupDir.exists()) {
       if (!backupDir.removeRecursively()) {
@@ -301,8 +298,7 @@ void MainWindow::onGamePathQueryChanged(const QString &path) {
 }
 void MainWindow::updateBackupInfo() {
   QString backupFolderPath =
-      "C:\\Users\\" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
-      "\\.ArkModIC\\Mods.old\\";
+      "C:\\Users\\" + username + "\\.ArkModIC\\Mods.old\\";
   quint64 backupSize = ArkModICWindowUtils::getFolderSize(backupFolderPath);
   QString backupSizeText = ArkModICWindowUtils::formatSize(backupSize);
   ui->backupSizeLabel->setText("Backup Size from .ArkModIC Folder: " +
@@ -322,4 +318,26 @@ void MainWindow::onProcessErrorOccurred(QProcess::ProcessError error) {
       LogLevel::ERRORING, __FILE__, __LINE__,
       "Error occurred in SteamCMD process: " + error);
   enableButtons();
+}
+
+void MainWindow::onChooseModsFileButtonClicked() {
+  QString filePath = QFileDialog::getOpenFileName(
+      this, tr("Choose Mods File"), QDir::homePath(), tr("Text Files (*.txt)"));
+  if (!filePath.isEmpty()) {
+    QFile file(filePath);
+    if (file.open(QIODevice::ReadOnly)) {
+      QTextStream in(&file);
+      QString modIds = in.readAll();
+      modsSteamIdListQuery->setText(modIds);
+      QString saveFolder =
+          "C:/Users/" + username + "/.ArkModIC/ModsIdsListSave";
+      QDir dir(saveFolder);
+      if (!dir.exists()) {
+        dir.mkpath(saveFolder);
+      }
+      QString savePath = saveFolder + "/" + QFileInfo(filePath).fileName();
+      QFile::copy(filePath, savePath);
+      file.close();
+    }
+  }
 }
