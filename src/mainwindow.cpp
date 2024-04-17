@@ -424,7 +424,9 @@ void MainWindow::onChooseModsFileButtonClicked() {
       QString modIds = in.readAll();
       modsSteamIdListQuery->setText(modIds);
       QString saveFolder =
-          "C:/Users/" + username + "/.ArkModIC/ModsIdsListSave";
+          "C:/Users/" +
+          QString::fromStdString(LoggerGlobals::UsernameDirectory) +
+          "/.ArkModIC/ModsIdsListSave";
       QDir dir(saveFolder);
       if (!dir.exists()) {
         dir.mkpath(saveFolder);
@@ -435,7 +437,6 @@ void MainWindow::onChooseModsFileButtonClicked() {
     }
   }
 }
-
 void MainWindow::loadModIDsFromFile(const QString &filePath) {
   QFile file(filePath);
   if (file.open(QIODevice::ReadOnly)) {
@@ -447,7 +448,9 @@ void MainWindow::loadModIDsFromFile(const QString &filePath) {
 }
 
 void MainWindow::updateModsFileComboBox() {
-  QString saveFolder = "C:/Users/" + username + "/.ArkModIC/ModsIdsListSave";
+  QString saveFolder =
+      "C:/Users/" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
+      "/.ArkModIC/ModsIdsListSave";
   QDir dir(saveFolder);
   QStringList filters;
   filters << "*.txt";
@@ -462,9 +465,10 @@ void MainWindow::updateModsFileComboBox() {
 }
 
 void MainWindow::onModsFileSelected(int index) {
-  QString saveFolder = "C:/Users/" + username + "/.ArkModIC/ModsIdsListSave";
+  QString saveFolder = "C:/Users/" + QString::fromStdString(LoggerGlobals::UsernameDirectory) + "/.ArkModIC/ModsIdsListSave";
   QString filePath = saveFolder + "/" + ui->modsFileComboBox->currentText();
   loadModIDsFromFile(filePath);
+  onModsSteamIdListQueryChanged(modsSteamIdListQuery->text());
 }
 
 void MainWindow::onGoToModsInformationClicked() {
