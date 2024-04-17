@@ -55,6 +55,62 @@ endif()
 # Add the target includes for ArkModIC 
 target_include_directories(${PROJECT_NAME} PRIVATE ${ALL_INCLUDE_DIR} ${FORMS_DIR} ${INCLUDE_DIR} ${SOURCE_DIR})
 
+# Récupérer le chemin des DLLs de Qt à partir de la variable système QTDIR
+set(Qt_DLL_Path $ENV{QTDIR}/bin)
+
+# Récupérer le chemin des DLLs et des plugins de Qt à partir de la variable système QTDIR
+set(Qt_Bin_Path $ENV{QTDIR}/bin)
+set(Qt_Plugins_Path $ENV{QTDIR}/plugins)
+
+# Liste des DLLs nécessaires
+set(DLL_List
+    "Qt6Core.dll"
+    "Qt6Network.dll"
+    "Qt6Widgets.dll"
+    "Qt6Gui.dll"
+)
+
+# Liste des plugins nécessaires
+set(Plugins_List
+    "platforms"
+    "styles"
+    # Ajoutez d'autres répertoires de plugins si nécessaire
+)
+
+# Copier les DLLs nécessaires après la construction si elles n'existent pas déjà
+foreach(DLL ${DLL_List})
+    # Chemin complet de la DLL
+    set(DLL_Path "${Qt_Bin_Path}/${DLL}")
+
+    # Chemin de destination (dossier de sortie de l'exécutable)
+    set(Destination_Path "$<TARGET_FILE_DIR:${PROJECT_NAME}>/${DLL}")
+
+    # Copier la DLL uniquement si elle n'existe pas déjà dans le dossier de sortie
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${DLL_Path}"
+        "${Destination_Path}"
+        COMMENT "Copying ${DLL}"
+    )
+endforeach()
+
+# Copier les plugins nécessaires après la construction
+foreach(Plugin ${Plugins_List})
+    # Chemin complet du répertoire de plugins
+    set(Plugin_Path "${Qt_Plugins_Path}/${Plugin}")
+
+    # Chemin de destination (dossier de sortie de l'exécutable)
+    set(Destination_Path "$<TARGET_FILE_DIR:${PROJECT_NAME}>/${Plugin}")
+
+    # Copier le répertoire de plugins uniquement s'il n'existe pas déjà dans le dossier de sortie
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${Plugin_Path}"
+        "${Destination_Path}"
+        COMMENT "Copying ${Plugin}"
+    )
+endforeach()
+
 #===================== LINKING LIBRARIES =======================#
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Network Qt6::Widgets)
 
