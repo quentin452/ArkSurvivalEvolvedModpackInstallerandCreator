@@ -2,7 +2,9 @@
 // TODO : ADD CONFIG FILE TO SAVE THINGS SUCH HAS COCHE CASE AND GAME DIRECTORIE
 // TODO : ADD steamid mod LIST BACKUP
 // TODO : REMAKE UI
-
+// TODO : ADD A BUTTON TO REMOVE CONTENT IN C:\\Users\\" +
+//   LoggerGlobals::UsernameDirectory +
+//  "\\.ArkModIC\\Mods.old
 #include "ui_mainwindow.h"
 #include <ArkModIC/ArkSEModpackGlobals.h>
 #include <ArkModIC/mainwindow.h>
@@ -118,6 +120,12 @@ void MainWindow::onProcessFinished(int exitCode,
 
       if (QFileInfo(filePath).isDir()) {
         QDir(destFilePath).mkpath(".");
+      } else {
+        if (!QFile::copy(filePath, destFilePath)) {
+          ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+              LogLevel::ERRORING, __FILE__, __LINE__,
+              "Failed to copy file: " + filePath.toStdString());
+        }
       }
     }
     for (int i = 0; i < DirRecursivityRemovalDepth; ++i) {
@@ -165,7 +173,9 @@ void MainWindow::onInstallButtonClicked() {
 
   if (backupMods) {
     QString modsFolderPath = path + "/Mods/";
-    QString backupFolderPath = path + "/Mods.old/";
+    QString backupFolderPath =
+        "C:\\Users\\" + getCurrentUsername() + "\\.ArkModIC\\Mods.old\\";
+
     QDir modsDir(modsFolderPath);
     QDir backupDir(backupFolderPath);
 
