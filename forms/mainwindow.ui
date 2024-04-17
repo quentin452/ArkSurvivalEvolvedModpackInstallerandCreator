@@ -37,18 +37,6 @@
             </property>
           </widget>
         </item>
-        <item row="1" column="0">
-          <widget class="QPushButton" name="pushButton">
-            <property name="font">
-              <font>
-                <pointsize>24</pointsize>
-              </font>
-            </property>
-            <property name="text">
-              <string>Click me</string>
-            </property>
-          </widget>
-        </item>
         <item row="2" column="0">
           <widget class="QLabel" name="label_2">
             <property name="text">
@@ -59,24 +47,31 @@
         <item row="2" column="1">
           <widget class="QLineEdit" name="modsSteamIdListQuery"/>
         </item>
-        <item row="3" column="0">
+        <item row="4" column="0">
           <widget class="QPushButton" name="installButton">
             <property name="text">
-              <string>Installer mods</string>
+              <string>Install mods</string>
             </property>
           </widget>
         </item>
-        <item row="4" column="0">
+        <item row="3" column="0">
           <widget class="QCheckBox" name="deleteModsCheckBox">
             <property name="text">
-              <string>Supprimer le dossier "Mods" avant de copier les mods</string>
+              <string>Delete the "Mods" folder before copying mods</string>
             </property>
           </widget>
         </item>
-        <item row="4" column="1">
+        <item row="3" column="1">
           <widget class="QCheckBox" name="backupModsCheckBox">
             <property name="text">
-              <string>Sauvegarder les mods avant d'installer les Mods</string>
+              <string>Backup Mods Before Installing Mods</string>
+            </property>
+          </widget>
+        </item>
+        <item row="5" column="0">
+          <widget class="QPushButton" name="removeModsBackupButton">
+            <property name="text">
+              <string>Delete mod backup</string>
             </property>
           </widget>
         </item>

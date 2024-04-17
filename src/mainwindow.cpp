@@ -2,9 +2,8 @@
 // TODO : ADD CONFIG FILE TO SAVE THINGS SUCH HAS COCHE CASE AND GAME DIRECTORIE
 // TODO : ADD steamid mod LIST BACKUP
 // TODO : REMAKE UI
-// TODO : ADD A BUTTON TO REMOVE CONTENT IN C:\\Users\\" +
-//   LoggerGlobals::UsernameDirectory +
-//  "\\.ArkModIC\\Mods.old
+// TODO : ADD informations to know how many space take backups / mods folder
+// from the game
 #include "ui_mainwindow.h"
 #include <ArkModIC/ArkSEModpackGlobals.h>
 #include <ArkModIC/mainwindow.h>
@@ -13,6 +12,7 @@
 #include <QDirIterator>
 #include <QFileDialog>
 #include <QProcess>
+#include <QMessageBox>
 #include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
 #include <ThreadedLoggerForCPP/LoggerThread.hpp>
@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
           &MainWindow::onBrowseButtonClicked);
   connect(ui->installButton, &QPushButton::clicked, this,
           &MainWindow::onInstallButtonClicked);
+  connect(ui->removeModsBackupButton, &QPushButton::clicked, this,
+          &MainWindow::onRemoveModsBackupButtonClicked);
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -237,5 +239,37 @@ void MainWindow::enableButtons() {
   QList<QPushButton *> allButtons = findChildren<QPushButton *>();
   for (QPushButton *button : allButtons) {
     button->setEnabled(true);
+  }
+}
+void MainWindow::onRemoveModsBackupButtonClicked() {
+  // Afficher une boîte de dialogue de confirmation
+  QMessageBox::StandardButton reply;
+  reply = QMessageBox::question(
+      this, "Supprimer la sauvegarde des mods",
+      "Êtes-vous sûr de vouloir supprimer la sauvegarde de tous vos mods ?",
+      QMessageBox::Yes | QMessageBox::No);
+  if (reply == QMessageBox::Yes) {
+    // Supprimer les mods de sauvegarde
+    QString backupFolderPath =
+        "C:\\Users\\" + getCurrentUsername() + "\\.ArkModIC\\Mods.old\\";
+    QDir backupDir(backupFolderPath);
+    if (backupDir.exists()) {
+      if (!backupDir.removeRecursively()) {
+        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+            LogLevel::ERRORING, __FILE__, __LINE__,
+            "Failed to delete Mods backup folder: " +
+                backupFolderPath.toStdString());
+        return;
+      }
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+          LogLevel::INFO, __FILE__, __LINE__,
+          "Mods backup folder deleted successfully: " +
+              backupFolderPath.toStdString());
+    } else {
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+          LogLevel::ERRORING, __FILE__, __LINE__,
+          "Mods backup folder does not exist: " +
+              backupFolderPath.toStdString());
+    }
   }
 }

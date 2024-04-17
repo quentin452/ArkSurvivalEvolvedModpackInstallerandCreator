@@ -21,6 +21,7 @@ public:
   void onInstallButtonClicked();
   void disableButtons();
   void enableButtons();
+  void onRemoveModsBackupButtonClicked();
   bool copyRecursively(const QString &srcPath, const QString &dstPath);
 
 private:
