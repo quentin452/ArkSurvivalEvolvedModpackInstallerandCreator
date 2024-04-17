@@ -1,10 +1,9 @@
-// TODO : ADD AN OPTION TO BACKUP FOLDER
 // TODO : PREVENT THE USER TO CLICK ON INSTALL MOD BUTTON AGAIN IF STEAMCMD IS
 // RUNNING
 // TODO : ADD DIFFERENT LANGUAGE
 // TODO : ADD CONFIG FILE TO SAVE THINGS SUCH HAS COCHE CASE AND GAME DIRECTORIE
 // TODO : ADD steamid mod LIST BACKUP
-// TODO : ADD AN COCHE CASE TO BACKUP MODS BEFORE REMOVING Mods CONTENTS
+// TODO : REMAKE UI
 
 #include "ui_mainwindow.h"
 #include <ArkModIC/ArkSEModpackGlobals.h>
@@ -157,10 +156,51 @@ void MainWindow::onCopyProcessFinished(int exitCode,
 void MainWindow::onInstallButtonClicked() {
   ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
       LogLevel::INFO, __FILE__, __LINE__, "Install Mods...");
+
   QString path = gamePathQuery->text();
   QString mods = modsSteamIdListQuery->text();
   QStringList modList = mods.split(",");
   bool deleteMods = ui->deleteModsCheckBox->isChecked();
+  bool backupMods = ui->backupModsCheckBox->isChecked();
+
+  if (backupMods) {
+    QString modsFolderPath = path + "/Mods/";
+    QString backupFolderPath = path + "/Mods.old/";
+    QDir modsDir(modsFolderPath);
+    QDir backupDir(backupFolderPath);
+
+    if (!backupDir.exists()) {
+      if (!backupDir.mkpath(".")) {
+        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+            LogLevel::ERRORING, __FILE__, __LINE__,
+            "Failed to create backup folder: " +
+                backupFolderPath.toStdString());
+        return;
+      }
+    }
+    QString timestamp =
+        QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
+    QString zipFileName = backupFolderPath + "Mods_" + timestamp + ".zip";
+
+    if (!QDir(modsFolderPath).exists()) {
+      if (!QDir().mkdir(modsFolderPath)) {
+        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+            LogLevel::ERRORING, __FILE__, __LINE__,
+            "Failed to create folder for mods backup: " +
+                modsFolderPath.toStdString());
+        return;
+      }
+    }
+    QProcess::execute("7z a \"" + zipFileName + "\" \"" + modsFolderPath +
+                      "\"");
+    QFile zipFile(zipFileName);
+    if (!zipFile.exists()) {
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+          LogLevel::ERRORING, __FILE__, __LINE__,
+          "Failed to create mods backup: " + zipFileName.toStdString());
+      return;
+    }
+  }
   if (deleteMods) {
     QString modsFolderPath = path + "/Mods/";
     QDir modsDir(modsFolderPath);

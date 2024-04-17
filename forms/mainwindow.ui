@@ -73,6 +73,13 @@
             </property>
           </widget>
         </item>
+        <item row="4" column="1">
+          <widget class="QCheckBox" name="backupModsCheckBox">
+            <property name="text">
+              <string>Sauvegarder les mods avant de supprimer le contenu de "Mods"</string>
+            </property>
+          </widget>
+        </item>
       </layout>
     </widget>
     <widget class="QMenuBar" name="menubar">
