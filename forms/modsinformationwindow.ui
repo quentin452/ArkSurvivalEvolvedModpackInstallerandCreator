@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+  <class>ModsInformationWindow</class>
+  <widget class="QMainWindow" name="ModsInformationWindow">
+    <property name="geometry">
+      <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>400</width>
+        <height>300</height>
+      </rect>
+    </property>
+    <widget class="QWidget" name="centralwidget">
+      <layout class="QVBoxLayout" name="verticalLayout">
+          <item row="1" column="0">
+          <widget class="QPushButton" name="goToMainWindowButton">
+            <property name="text">
+              <string>Go to Main Menu</string>
+            </property>
+          </widget>
+        </item>
+      </layout>
+    </widget>
+    <widget class="QMenuBar" name="menubar"/>
+    <widget class="QStatusBar" name="statusbar"/>
+  </widget>
+  <resources/>
+  <connections/>
+</ui>

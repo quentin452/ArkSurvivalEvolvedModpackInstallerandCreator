@@ -125,6 +125,13 @@
             </property>
           </widget>
         </item>
+        <item row="7" column="0">
+          <widget class="QPushButton" name="goToModsInformationButton">
+            <property name="text">
+              <string>Go to Mods Information</string>
+            </property>
+          </widget>
+        </item>
       </layout>
     </widget>
     <widget class="QMenuBar" name="menubar">

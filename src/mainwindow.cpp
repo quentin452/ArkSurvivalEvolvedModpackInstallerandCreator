@@ -3,21 +3,21 @@
 // TODO : ADD informations to know how many space take every mods
 // TODO : ADD A WAY TO KNOW WHICH MOD IS THIS ID BY EXAMPLE 2715085686 by making
 // a list (gui) of installed mods in your Ark Survival Evolved GamePath
-
 #include "ui_mainwindow.h"
 #include <ArkModIC/ArkModICWindowUtils.h>
 #include <ArkModIC/ArkSEModpackGlobals.h>
 #include <ArkModIC/mainwindow.h>
+#include <ArkModIC/modsinformationwindow.h>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
-#include <QTimer>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QProcess>
 #include <QSettings>
 #include <QStorageInfo>
+#include <QTimer>
 #include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
 #include <ThreadedLoggerForCPP/LoggerThread.hpp>
@@ -32,6 +32,9 @@ int depotOfArkSurvivalEvolvedOnSteam = 346110;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
+  modsInformationWindow = new ModsInformationWindow(this);
+  connect(ui->goToModsInformationButton, &QPushButton::clicked, this,
+          &MainWindow::onGoToModsInformationClicked);
   QString username = QString::fromStdString(LoggerGlobals::UsernameDirectory);
   CONFIG_FILE_PATH =
       "C:/Users/" + LoggerGlobals::UsernameDirectory + "/.ArkModIC/config.ini";
@@ -341,8 +344,8 @@ void MainWindow::enableButtons() {
 void MainWindow::onRemoveModsBackupButtonClicked() {
   QMessageBox::StandardButton reply;
   reply = QMessageBox::question(
-      this, "Supprimer la sauvegarde des mods",
-      "Êtes-vous sûr de vouloir supprimer la sauvegarde de tous vos mods ?",
+      this, "Remove Mods Backups",
+      "Are you sure you want to delete the backup of all your mods ?",
       QMessageBox::Yes | QMessageBox::No);
   if (reply == QMessageBox::Yes) {
     QString backupFolderPath =
@@ -462,4 +465,9 @@ void MainWindow::onModsFileSelected(int index) {
   QString saveFolder = "C:/Users/" + username + "/.ArkModIC/ModsIdsListSave";
   QString filePath = saveFolder + "/" + ui->modsFileComboBox->currentText();
   loadModIDsFromFile(filePath);
+}
+
+void MainWindow::onGoToModsInformationClicked() {
+  this->hide();
+  modsInformationWindow->show();
 }

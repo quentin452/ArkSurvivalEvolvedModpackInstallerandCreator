@@ -5,6 +5,9 @@
 #include <QMainWindow>
 #include <QProcess>
 #include <string>
+
+#include <ArkModIC/modsinformationwindow.h>
+
 namespace Ui {
 class MainWindow;
 }
@@ -53,8 +56,10 @@ private:
   std::string MODS_LIST_KEY;
   std::string DELETE_MODS_KEY;
   std::string BACKUP_MODS_KEY;
+  ModsInformationWindow *modsInformationWindow;
 private slots:
   void update();
+  void onGoToModsInformationClicked();
 };
 
 #endif // MAINWINDOW_H
