@@ -5,6 +5,7 @@
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
 #include <ThreadedLoggerForCPP/LoggerThread.hpp>
 #include <Windows.h>
+#include <cstdlib>
 #include <iostream>
 #include <shellapi.h>
 #include <tlhelp32.h>
@@ -90,6 +91,7 @@ int main(int argc, char *argv[]) {
     ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
         LogLevel::ERRORING, __FILE__, __LINE__,
         "Failed to get admin privileges");
+    exit(EXIT_FAILURE);
     return 1;
   }
 
@@ -109,6 +111,7 @@ int main(int argc, char *argv[]) {
           LogLevel::INFO, __FILE__, __LINE__, "Exiting application...");
       QObject::disconnect(&app, &QApplication::aboutToQuit, nullptr, nullptr);
       qApp->quit();
+      exit(EXIT_SUCCESS);
     });
     ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
         LogLevel::INFO, __FILE__, __LINE__, "Starting application...");

@@ -76,10 +76,7 @@ MainWindow::MainWindow(QWidget *parent)
   updateBackupInfo();
   updateModsInfo();
 }
-MainWindow::~MainWindow() {
-
-  delete ui;
-}
+MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::onDeleteModsCheckBoxStateChanged(int state) {
   bool deleteMods = (state == Qt::Checked);
