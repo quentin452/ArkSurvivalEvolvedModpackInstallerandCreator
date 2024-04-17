@@ -11,8 +11,8 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFileDialog>
-#include <QProcess>
 #include <QMessageBox>
+#include <QProcess>
 #include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
 #include <ThreadedLoggerForCPP/LoggerThread.hpp>
@@ -27,7 +27,9 @@ MainWindow::MainWindow(QWidget *parent)
   ui->setupUi(this);
   gamePathQuery = this->findChild<QLineEdit *>("gamePathQuery");
   modsSteamIdListQuery = this->findChild<QLineEdit *>("modsSteamIdListQuery");
-  gamePathQuery->setText("C:/Users/iamacatfr/Desktop/test");
+  gamePathQuery->setText(
+      "C:/Users/" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
+      "/Desktop/test");
   modsSteamIdListQuery->setText("2783538786,2715085686");
   connect(ui->browseButton, &QPushButton::clicked, this,
           &MainWindow::onBrowseButtonClicked);
@@ -35,8 +37,13 @@ MainWindow::MainWindow(QWidget *parent)
           &MainWindow::onInstallButtonClicked);
   connect(ui->removeModsBackupButton, &QPushButton::clicked, this,
           &MainWindow::onRemoveModsBackupButtonClicked);
+  ui->warningLabel->setText("");
+  ui->warningLabel->setStyleSheet("color: red");
+  ui->gridLayout->addWidget(ui->warningLabel, 0, 3, 1, 1);
+  connect(gamePathQuery, &QLineEdit::textChanged, this,
+          &MainWindow::onGamePathQueryChanged);
+  onGamePathQueryChanged(gamePathQuery->text());
 }
-
 MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::onBrowseButtonClicked() {
@@ -45,23 +52,10 @@ void MainWindow::onBrowseButtonClicked() {
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
   if (!directory.isEmpty()) {
     gamePathQuery->setText(directory);
+    onGamePathQueryChanged(gamePathQuery->text());
   }
 }
-QString getCurrentUsername() {
-  WCHAR username[UNLEN + 1];
-  DWORD size = UNLEN + 1;
-  if (!GetUserNameW(username, &size)) {
-    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-        LogLevel::ERRORING, __FILE__, __LINE__,
-        "Failed to get current username");
-    return QString();
-  }
-  QString usernameStr = QString::fromWCharArray(username);
-  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-      LogLevel::INFO, __FILE__, __LINE__,
-      "Current Username: " + usernameStr.toStdString());
-  return usernameStr;
-}
+
 void MainWindow::downloadMods(QString path, QStringList modIDs) {
   disableButtons();
   this->path = path;
@@ -176,7 +170,9 @@ void MainWindow::onInstallButtonClicked() {
   if (backupMods) {
     QString modsFolderPath = path + "/Mods/";
     QString backupFolderPath =
-        "C:\\Users\\" + getCurrentUsername() + "\\.ArkModIC\\Mods.old\\";
+        "C:\\Users\\" +
+        QString::fromStdString(LoggerGlobals::UsernameDirectory) +
+        "\\.ArkModIC\\Mods.old\\";
 
     QDir modsDir(modsFolderPath);
     QDir backupDir(backupFolderPath);
@@ -251,7 +247,9 @@ void MainWindow::onRemoveModsBackupButtonClicked() {
   if (reply == QMessageBox::Yes) {
     // Supprimer les mods de sauvegarde
     QString backupFolderPath =
-        "C:\\Users\\" + getCurrentUsername() + "\\.ArkModIC\\Mods.old\\";
+        "C:\\Users\\" +
+        QString::fromStdString(LoggerGlobals::UsernameDirectory) +
+        "\\.ArkModIC\\Mods.old\\";
     QDir backupDir(backupFolderPath);
     if (backupDir.exists()) {
       if (!backupDir.removeRecursively()) {
@@ -271,5 +269,18 @@ void MainWindow::onRemoveModsBackupButtonClicked() {
           "Mods backup folder does not exist: " +
               backupFolderPath.toStdString());
     }
+  }
+}
+
+void MainWindow::onGamePathQueryChanged(const QString &path) {
+  QString shooterGamePath =
+      path + "/ShooterGame/Binaries/Win64/ShooterGame.exe";
+  if (!QFile::exists(shooterGamePath)) {
+    ui->warningLabel->setText(
+        "Warning: ShooterGame.exe file "
+        "not found in the specified directory.(ShooterGame.exe is the "
+        "executable of Ark Survival Evolved)");
+  } else {
+    ui->warningLabel->clear();
   }
 }
