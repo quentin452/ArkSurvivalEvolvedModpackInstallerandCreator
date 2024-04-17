@@ -1,5 +1,4 @@
 // TODO : ADD DIFFERENT LANGUAGE
-// TODO : ADD CONFIG FILE TO SAVE THINGS SUCH HAS COCHE CASE AND GAME DIRECTORIE
 // TODO : REMAKE UI
 // TODO : ADD informations to know how many space take every mods
 // TODO : ADD A WAY TO KNOW WHICH MOD IS THIS ID BY EXAMPLE 2715085686 by making
@@ -16,6 +15,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QProcess>
+#include <QSettings>
 #include <QStorageInfo>
 #include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
@@ -24,17 +24,32 @@
 #include <iostream>
 #include <lmcons.h>
 #include <windows.h>
+
 int DirRecursivityRemovalDepth = 3;
 int depotOfArkSurvivalEvolvedOnSteam = 346110;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
+  QString username = QString::fromStdString(LoggerGlobals::UsernameDirectory);
+  CONFIG_FILE_PATH =
+      "C:/Users/" + LoggerGlobals::UsernameDirectory + "/.ArkModIC/config.ini";
+  GAME_PATH_KEY = "GamePath";
+  MODS_LIST_KEY = "ModsList";
+  DELETE_MODS_KEY = "DeleteMods";
+  BACKUP_MODS_KEY = "BackupMods";
+  QString gamePath, modsList;
+  bool deleteMods, backupMods;
+  readSettingsFromConfigFile(gamePath, modsList);
+  readCheckboxStatesFromConfigFile(deleteMods, backupMods);
+
   gamePathQuery = this->findChild<QLineEdit *>("gamePathQuery");
   modsSteamIdListQuery = this->findChild<QLineEdit *>("modsSteamIdListQuery");
-  QString username = QString::fromStdString(LoggerGlobals::UsernameDirectory);
-  gamePathQuery->setText("C:/Users/" + username + "/Desktop/test");
-  modsSteamIdListQuery->setText("2783538786,2715085686");
+  gamePathQuery->setText(gamePath);
+  modsSteamIdListQuery->setText(modsList);
+
+  ui->deleteModsCheckBox->setChecked(deleteMods);
+  ui->backupModsCheckBox->setChecked(backupMods);
   connect(ui->browseButton, &QPushButton::clicked, this,
           &MainWindow::onBrowseButtonClicked);
   connect(ui->installButton, &QPushButton::clicked, this,
@@ -43,6 +58,11 @@ MainWindow::MainWindow(QWidget *parent)
           &MainWindow::onRemoveModsBackupButtonClicked);
   connect(ui->chooseModsFileButton, &QPushButton::clicked, this,
           &MainWindow::onChooseModsFileButtonClicked);
+  connect(ui->deleteModsCheckBox, &QCheckBox::stateChanged, this,
+          &MainWindow::onDeleteModsCheckBoxStateChanged);
+  connect(ui->backupModsCheckBox, &QCheckBox::stateChanged, this,
+          &MainWindow::onBackupModsCheckBoxStateChanged);
+
   ui->warningLabel->setText("");
   ui->warningLabel->setStyleSheet("color: orange");
   ui->warningLabel2->setText("");
@@ -58,6 +78,51 @@ MainWindow::MainWindow(QWidget *parent)
 }
 MainWindow::~MainWindow() { delete ui; }
 
+void MainWindow::onDeleteModsCheckBoxStateChanged(int state) {
+  bool deleteMods = (state == Qt::Checked);
+  bool backupMods = ui->backupModsCheckBox->isChecked();
+  saveCheckboxStatesToConfigFile(deleteMods, backupMods);
+}
+
+void MainWindow::onBackupModsCheckBoxStateChanged(int state) {
+  bool deleteMods = ui->deleteModsCheckBox->isChecked();
+  bool backupMods = (state == Qt::Checked);
+  saveCheckboxStatesToConfigFile(deleteMods, backupMods);
+}
+
+void MainWindow::readSettingsFromConfigFile(QString &gamePath,
+                                            QString &modsList) {
+  QSettings settings(QString::fromStdString(CONFIG_FILE_PATH),
+                     QSettings::IniFormat);
+  gamePath = settings.value(QString::fromStdString(GAME_PATH_KEY)).toString();
+  modsList = settings.value(QString::fromStdString(MODS_LIST_KEY)).toString();
+}
+
+void MainWindow::readCheckboxStatesFromConfigFile(bool &deleteMods,
+                                                  bool &backupMods) {
+  QSettings settings(QString::fromStdString(CONFIG_FILE_PATH),
+                     QSettings::IniFormat);
+  deleteMods =
+      settings.value(QString::fromStdString(DELETE_MODS_KEY), false).toBool();
+  backupMods =
+      settings.value(QString::fromStdString(BACKUP_MODS_KEY), false).toBool();
+}
+
+void MainWindow::saveCheckboxStatesToConfigFile(bool deleteMods,
+                                                bool backupMods) {
+  QSettings settings(QString::fromStdString(CONFIG_FILE_PATH),
+                     QSettings::IniFormat);
+  settings.setValue(QString::fromStdString(DELETE_MODS_KEY), deleteMods);
+  settings.setValue(QString::fromStdString(BACKUP_MODS_KEY), backupMods);
+}
+
+void MainWindow::saveSettingsToConfigFile(const QString &gamePath,
+                                          const QString &modsList) {
+  QSettings settings(QString::fromStdString(CONFIG_FILE_PATH),
+                     QSettings::IniFormat);
+  settings.setValue(QString::fromStdString(GAME_PATH_KEY), gamePath);
+  settings.setValue(QString::fromStdString(MODS_LIST_KEY), modsList);
+}
 void MainWindow::onBrowseButtonClicked() {
   QString directory = QFileDialog::getExistingDirectory(
       this, tr("Select Directory"), QDir::homePath(),
@@ -66,6 +131,7 @@ void MainWindow::onBrowseButtonClicked() {
     gamePathQuery->setText(directory);
     onGamePathQueryChanged(gamePathQuery->text());
   }
+  saveSettingsToConfigFile(gamePathQuery->text(), modsSteamIdListQuery->text());
 }
 
 void MainWindow::downloadMods(QString path, QStringList modIDs) {
@@ -248,6 +314,8 @@ void MainWindow::onInstallButtonClicked() {
     }
   }
   downloadMods(path, modList);
+  saveCheckboxStatesToConfigFile(deleteMods, backupMods);
+  saveSettingsToConfigFile(gamePathQuery->text(), modsSteamIdListQuery->text());
 }
 
 void MainWindow::disableButtons() {

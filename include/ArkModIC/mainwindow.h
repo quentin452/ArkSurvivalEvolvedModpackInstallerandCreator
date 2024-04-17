@@ -4,6 +4,7 @@
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QProcess>
+#include <string>
 namespace Ui {
 class MainWindow;
 }
@@ -25,9 +26,16 @@ public:
   void updateBackupInfo();
   void updateModsInfo();
   void onChooseModsFileButtonClicked();
-   void onModsSteamIdListQueryChanged(const QString &modIds);
+  void onModsSteamIdListQueryChanged(const QString &modIds);
   void onProcessErrorOccurred(QProcess::ProcessError error);
   void onGamePathQueryChanged(const QString &path);
+  void readSettingsFromConfigFile(QString &gamePath, QString &modsList);
+  void readCheckboxStatesFromConfigFile(bool &deleteMods, bool &backupMods);
+  void saveCheckboxStatesToConfigFile(bool deleteMods, bool backupMods);
+  void saveSettingsToConfigFile(const QString &gamePath,
+                                const QString &modsList);
+  void onDeleteModsCheckBoxStateChanged(int state);
+  void onBackupModsCheckBoxStateChanged(int state);
 
 private:
   Ui::MainWindow *ui;
@@ -35,7 +43,12 @@ private:
   QLineEdit *modsSteamIdListQuery;
   std::string LogFilePathForTheThread;
   QString path;
-  QString username; 
+  QString username;
+  std::string CONFIG_FILE_PATH;
+  std::string GAME_PATH_KEY;
+  std::string MODS_LIST_KEY;
+  std::string DELETE_MODS_KEY;
+  std::string BACKUP_MODS_KEY;
 };
 
 #endif // MAINWINDOW_H
