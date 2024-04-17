@@ -1,5 +1,6 @@
-// TODO : ADD AN OPTION TO BACKUP/REMOVE Mods FOLDER 
-// TODO : PREVENT THE USER TO CLICK ON INSTALL MOD BUTTON AGAIN IF STEAMCMD IS RUNNING
+// TODO : ADD AN OPTION TO BACKUP/REMOVE Mods FOLDER
+// TODO : PREVENT THE USER TO CLICK ON INSTALL MOD BUTTON AGAIN IF STEAMCMD IS
+// RUNNING
 // TODO :: ADD DIFFERENT LANGUAGE
 
 #include "ui_mainwindow.h"
@@ -66,44 +67,41 @@ QString getCurrentUsername() {
   return usernameStr;
 }
 void MainWindow::downloadMods(QString path, QStringList modIDs) {
-    this->path = path;
+  this->path = path;
 
-    try {
-        QString steamcmdPath = "steamcmd.exe";
+  try {
+    QString steamcmdPath = "steamcmd.exe";
 
-        QProcess *process = new QProcess(this);
-        process->setProgram("cmd.exe");
+    QProcess *process = new QProcess(this);
+    process->setProgram("cmd.exe");
 
-        QStringList arguments;
-        arguments << "/c"
-                  << "start"
-                  << "/wait"
-                  << "steamcmd.exe"
-                  << "+login"
-                  << "anonymous"
-                  << "+force_install_dir" << path;
+    QStringList arguments;
+    arguments << "/c"
+              << "start"
+              << "/wait"
+              << "steamcmd.exe"
+              << "+force_install_dir" << path << "+login"
+              << "anonymous";
 
-        // Ajoutez une commande workshop_download_item pour chaque ID de mod
-        foreach (QString modID, modIDs) {
-            arguments << "+workshop_download_item"
-                      << QString::number(depotOfArkSurvivalEvolvedOnSteam) << modID;
-        }
-
-        // Commande pour quitter steamcmd après le téléchargement
-        arguments << "+quit";
-
-        process->setArguments(arguments);
-        process->setWorkingDirectory(path);
-
-        connect(process, &QProcess::finished, this, &MainWindow::onProcessFinished);
-
-        process->start();
-    } catch (const std::exception &e) {
-        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-            LogLevel::ERRORING, __FILE__, __LINE__,
-            "An error occurred while executing the command: " +
-            std::string(e.what()));
+    foreach (QString modID, modIDs) {
+      arguments << "+workshop_download_item"
+                << QString::number(depotOfArkSurvivalEvolvedOnSteam) << modID;
     }
+
+    arguments << "+quit";
+
+    process->setArguments(arguments);
+    process->setWorkingDirectory(path);
+
+    connect(process, &QProcess::finished, this, &MainWindow::onProcessFinished);
+
+    process->start();
+  } catch (const std::exception &e) {
+    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+        LogLevel::ERRORING, __FILE__, __LINE__,
+        "An error occurred while executing the command: " +
+            std::string(e.what()));
+  }
 }
 
 void MainWindow::onProcessFinished(int exitCode,
