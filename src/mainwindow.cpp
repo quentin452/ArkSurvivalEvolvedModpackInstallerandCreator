@@ -1,10 +1,12 @@
+// TODO : ADD AN OPTION TO BACKUP/REMOVE Mods FOLDER 
+
 #include "ui_mainwindow.h"
 #include <ArkModIC/ArkSEModpackGlobals.h>
 #include <ArkModIC/mainwindow.h>
 #include <QDebug>
 #include <QDir>
-#include <QFileDialog>
 #include <QDirIterator>
+#include <QFileDialog>
 #include <QProcess>
 #include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
@@ -14,16 +16,17 @@
 #include <lmcons.h>
 #include <windows.h>
 namespace fs = std::filesystem;
+int DirRecursivityRemovalDepth = 3;
+int depotOfArkSurvivalEvolvedOnSteam = 346110;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
-  std::cout << "Construct MainWindow" << std::endl;
   ui->setupUi(this);
-  lineEdit = this->findChild<QLineEdit *>("lineEdit");
-  modsLineEdit = this->findChild<QLineEdit *>("modsLineEdit");
+  gamePathQuery = this->findChild<QLineEdit *>("gamePathQuery");
+  modsSteamIdListQuery = this->findChild<QLineEdit *>("modsSteamIdListQuery");
 
   // Définir les valeurs par défaut
-  lineEdit->setText("C:/Users/iamacatfr/Desktop/test");
-  modsLineEdit->setText("2783538786");
+  gamePathQuery->setText("C:/Users/iamacatfr/Desktop/test");
+  modsSteamIdListQuery->setText("2783538786,2715085686");
 
   connect(ui->browseButton, &QPushButton::clicked, this,
           &MainWindow::onBrowseButtonClicked);
@@ -40,7 +43,7 @@ void MainWindow::onBrowseButtonClicked() {
       this, tr("Select Directory"), QDir::homePath(),
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
   if (!directory.isEmpty()) {
-    lineEdit->setText(directory);
+    gamePathQuery->setText(directory);
   }
 }
 QString getCurrentUsername() {
@@ -61,37 +64,46 @@ QString getCurrentUsername() {
   return usernameStr;
 }
 void MainWindow::downloadMods(QString path, QStringList modIDs) {
-  this->path = path;
+    this->path = path;
 
-  foreach (QString modID, modIDs) {
     try {
-      QProcess *process = new QProcess(this);
-      process->setProgram("steamcmd.exe");
+        QString steamcmdPath = "steamcmd.exe";
 
-      // Commande pour télécharger le mod
-      QStringList arguments;
-      arguments << "+login"
-                << "anonymous"
-                << "+force_install_dir" << path << "+workshop_download_item"
-                << "346110" << modID;
+        QProcess *process = new QProcess(this);
+        process->setProgram("cmd.exe");
 
-      // Commande pour quitter steamcmd après le téléchargement
-      arguments << "+quit";
+        QStringList arguments;
+        arguments << "/c"
+                  << "start"
+                  << "/wait"
+                  << "steamcmd.exe"
+                  << "+login"
+                  << "anonymous"
+                  << "+force_install_dir" << path;
 
-      process->setArguments(arguments);
+        // Ajoutez une commande workshop_download_item pour chaque ID de mod
+        foreach (QString modID, modIDs) {
+            arguments << "+workshop_download_item"
+                      << QString::number(depotOfArkSurvivalEvolvedOnSteam) << modID;
+        }
 
-      connect(process, &QProcess::finished, this,
-              &MainWindow::onProcessFinished);
+        // Commande pour quitter steamcmd après le téléchargement
+        arguments << "+quit";
 
-      process->start();
+        process->setArguments(arguments);
+        process->setWorkingDirectory(path);
+
+        connect(process, &QProcess::finished, this, &MainWindow::onProcessFinished);
+
+        process->start();
     } catch (const std::exception &e) {
-      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-          LogLevel::ERRORING, __FILE__, __LINE__,
-          "An error occurred while executing the command: " +
-              std::string(e.what()));
+        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+            LogLevel::ERRORING, __FILE__, __LINE__,
+            "An error occurred while executing the command: " +
+            std::string(e.what()));
     }
-  }
 }
+
 void MainWindow::onProcessFinished(int exitCode,
                                    QProcess::ExitStatus exitStatus) {
   QProcess *process = qobject_cast<QProcess *>(sender());
@@ -100,8 +112,9 @@ void MainWindow::onProcessFinished(int exitCode,
 
   if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
     // Chemin source
-    QString sourcePath = "C:/Users/" + getCurrentUsername() +
-                         "/Desktop/test/steamapps/workshop/content/346110/";
+    QString sourcePath =
+        gamePathQuery->text() + "/steamapps/workshop/content/" +
+        QString::number(depotOfArkSurvivalEvolvedOnSteam) + "/";
 
     // Vérifier que le répertoire source existe
     QDir sourceDir(sourcePath);
@@ -145,6 +158,24 @@ void MainWindow::onProcessFinished(int exitCode,
       }
     }
 
+    // Supprimer le répertoire source après la copie
+    for (int i = 0; i < DirRecursivityRemovalDepth; ++i) {
+      QDir parentDir = sourceDir;
+      parentDir.cdUp();
+      sourceDir = parentDir;
+    }
+    if (sourceDir.removeRecursively()) {
+      // Log de réussite de la suppression
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+          LogLevel::INFO, __FILE__, __LINE__,
+          "Source directory deleted successfully: " + sourcePath.toStdString());
+    } else {
+      // Log d'erreur en cas d'échec de la suppression
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+          LogLevel::ERRORING, __FILE__, __LINE__,
+          "Failed to delete source directory: " + sourcePath.toStdString());
+    }
+
     // Log de réussite de la copie des fichiers
     ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
         LogLevel::INFO, __FILE__, __LINE__,
@@ -170,8 +201,8 @@ void MainWindow::onCopyProcessFinished(int exitCode,
 void MainWindow::onInstallButtonClicked() {
   ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
       LogLevel::INFO, __FILE__, __LINE__, "Install Mods...");
-  QString path = lineEdit->text();
-  QString mods = modsLineEdit->text();
+  QString path = gamePathQuery->text();
+  QString mods = modsSteamIdListQuery->text();
 
   // split la chaine en liste
   QStringList modList = mods.split(",");

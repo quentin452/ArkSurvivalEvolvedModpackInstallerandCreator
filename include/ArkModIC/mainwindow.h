@@ -23,8 +23,8 @@ public:
 
 private:
   Ui::MainWindow *ui;
-  QLineEdit *lineEdit;
-  QLineEdit *modsLineEdit;
+  QLineEdit *gamePathQuery;
+  QLineEdit *modsSteamIdListQuery;
   std::string LogFilePathForTheThread;
   QString path;
 };

@@ -9,9 +9,40 @@
 #include <Windows.h>
 #include <iostream>
 #include <shellapi.h>
+#include <tlhelp32.h>
 #include <windows.h>
 
 int ExitLoggerThread = 0;
+
+void terminatePreviousInstances() {
+    // Get the process ID of the current process
+    DWORD currentProcessId = GetCurrentProcessId();
+
+    // Create a snapshot of the current system processes
+    HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+
+    // Check if the snapshot was successfully created
+    if (Process32First(hSnapShot, &pe32)) {
+        // Iterate through the processes
+        do {
+            // Check if the process name matches ArkModIC.exe and if it's not the current process
+            if (_wcsicmp(pe32.szExeFile, L"ArkModIC.exe") == 0 && pe32.th32ProcessID != currentProcessId) {
+                // Open the process with the termination permission
+                HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, pe32.th32ProcessID);
+                if (hProcess != NULL) {
+                    // Terminate the process
+                    TerminateProcess(hProcess, 1);
+                    CloseHandle(hProcess);
+                }
+            }
+        } while (Process32Next(hSnapShot, &pe32));
+    }
+
+    // Close the snapshot handle
+    CloseHandle(hSnapShot);
+}
 
 int LoggerThreadInit(int argc, char *argv[]) {
   LoggerGlobals::UsernameDirectory = std::getenv("USERNAME");
@@ -133,5 +164,6 @@ int runElevated(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+  terminatePreviousInstances();
   return LoggerThreadInit(argc, argv), runElevated(argc, argv);
 }

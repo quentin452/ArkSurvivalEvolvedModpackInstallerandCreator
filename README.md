@@ -1,6 +1,10 @@
 # ArkSurvivalEvolvedModpackInstallerandCreator
 a cpp app that can install a list of mods(modpack) on client and server for easier modpack download for the game ArkSE
 
+OS SUPPORT :
+
+Only support Windows for now
+
 How to build : 
 
 1 : show this tutorial : https://youtu.be/XiMplRfuFJc (install QT , Configure Qt in path (Windows) and install CMAKE)
