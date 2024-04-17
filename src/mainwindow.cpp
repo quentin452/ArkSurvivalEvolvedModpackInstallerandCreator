@@ -8,6 +8,7 @@
 #include "ui_mainwindow.h"
 #include <ArkModIC/ArkSEModpackGlobals.h>
 #include <ArkModIC/mainwindow.h>
+#include <ArkModIC/ArkModICWindowUtils.h>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
@@ -25,8 +26,7 @@
 #include <windows.h>
 int DirRecursivityRemovalDepth = 3;
 int depotOfArkSurvivalEvolvedOnSteam = 346110;
-quint64 getFolderSize(const QString &folderPath);
-QString formatSize(quint64 size);
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
@@ -303,43 +303,18 @@ void MainWindow::updateBackupInfo() {
   QString backupFolderPath =
       "C:\\Users\\" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
       "\\.ArkModIC\\Mods.old\\";
-  quint64 backupSize = getFolderSize(backupFolderPath);
-  QString backupSizeText = formatSize(backupSize);
+  quint64 backupSize = ArkModICWindowUtils::getFolderSize(backupFolderPath);
+  QString backupSizeText = ArkModICWindowUtils::formatSize(backupSize);
   ui->backupSizeLabel->setText("Backup Size from .ArkModIC Folder: " +
                                backupSizeText);
 }
 
 void MainWindow::updateModsInfo() {
   QString modsFolderPath = gamePathQuery->text() + "/Mods/";
-  quint64 modsSize = getFolderSize(modsFolderPath);
-  QString modsSizeText = formatSize(modsSize);
+  quint64 modsSize = ArkModICWindowUtils::getFolderSize(modsFolderPath);
+  QString modsSizeText = ArkModICWindowUtils::formatSize(modsSize);
   ui->modsSizeLabel->setText("Mods Size from Ark Surival Evolved: " +
                              modsSizeText);
-}
-
-quint64 getFolderSize(const QString &folderPath) {
-  quint64 size = 0;
-  QDir dir(folderPath);
-  QFileInfoList list =
-      dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden);
-  foreach (QFileInfo fileInfo, list) {
-    if (fileInfo.isDir()) {
-      size += getFolderSize(fileInfo.absoluteFilePath());
-    } else {
-      size += fileInfo.size();
-    }
-  }
-  return size;
-}
-
-QString formatSize(quint64 size) {
-  QStringList units = {"B", "KB", "MB", "GB"};
-  int unitIndex = 0;
-  while (size >= 1024 && unitIndex < units.size() - 1) {
-    size /= 1024;
-    ++unitIndex;
-  }
-  return QString::number(size) + " " + units[unitIndex];
 }
 
 void MainWindow::onProcessErrorOccurred(QProcess::ProcessError error) {
