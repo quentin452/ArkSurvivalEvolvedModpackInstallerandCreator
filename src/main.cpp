@@ -132,6 +132,7 @@ int runElevated(int argc, char *argv[]) {
 
       QObject::connect(&app, &QApplication::aboutToQuit, [&]() {
         ArkSEModpackGlobals::LoggerInstance.ExitLoggerThread();
+        terminatePreviousInstances();
       });
 
       return app.exec();
