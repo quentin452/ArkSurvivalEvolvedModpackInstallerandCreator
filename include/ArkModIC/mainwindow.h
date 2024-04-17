@@ -14,7 +14,6 @@ class MainWindow : public QMainWindow {
 public:
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
-  bool onPushButtonClicked();
   void onBrowseButtonClicked();
   void downloadMods(QString path, QStringList modIDs);
   void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
