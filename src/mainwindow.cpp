@@ -1,5 +1,3 @@
-// TODO : PREVENT THE USER TO CLICK ON INSTALL MOD BUTTON AGAIN IF STEAMCMD IS
-// RUNNING
 // TODO : ADD DIFFERENT LANGUAGE
 // TODO : ADD CONFIG FILE TO SAVE THINGS SUCH HAS COCHE CASE AND GAME DIRECTORIE
 // TODO : ADD steamid mod LIST BACKUP
@@ -61,6 +59,7 @@ QString getCurrentUsername() {
   return usernameStr;
 }
 void MainWindow::downloadMods(QString path, QStringList modIDs) {
+  disableButtons();
   this->path = path;
   try {
     QString steamcmdPath = "steamcmd.exe";
@@ -145,6 +144,7 @@ void MainWindow::onProcessFinished(int exitCode,
   }
 
   process->deleteLater();
+  enableButtons();
 }
 void MainWindow::onCopyProcessFinished(int exitCode,
                                        QProcess::ExitStatus exitStatus) {
@@ -214,4 +214,18 @@ void MainWindow::onInstallButtonClicked() {
     }
   }
   downloadMods(path, modList);
+}
+
+void MainWindow::disableButtons() {
+  QList<QPushButton *> allButtons = findChildren<QPushButton *>();
+  for (QPushButton *button : allButtons) {
+    button->setEnabled(false);
+  }
+}
+
+void MainWindow::enableButtons() {
+  QList<QPushButton *> allButtons = findChildren<QPushButton *>();
+  for (QPushButton *button : allButtons) {
+    button->setEnabled(true);
+  }
 }

@@ -19,6 +19,8 @@ public:
   void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
   void onCopyProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
   void onInstallButtonClicked();
+  void disableButtons();
+  void enableButtons();
 
 private:
   Ui::MainWindow *ui;
