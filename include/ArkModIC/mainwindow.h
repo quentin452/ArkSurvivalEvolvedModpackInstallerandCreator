@@ -25,6 +25,7 @@ public:
   void updateBackupInfo();
   void updateModsInfo();
   void onChooseModsFileButtonClicked();
+   void onModsSteamIdListQueryChanged(const QString &modIds);
   void onProcessErrorOccurred(QProcess::ProcessError error);
   void onGamePathQueryChanged(const QString &path);
 

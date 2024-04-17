@@ -44,11 +44,15 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->chooseModsFileButton, &QPushButton::clicked, this,
           &MainWindow::onChooseModsFileButtonClicked);
   ui->warningLabel->setText("");
-  ui->warningLabel->setStyleSheet("color: red");
-  ui->gridLayout->addWidget(ui->warningLabel, 0, 3, 1, 1);
+  ui->warningLabel->setStyleSheet("color: orange");
+  ui->warningLabel2->setText("");
+  ui->warningLabel2->setStyleSheet("color: red");
   connect(gamePathQuery, &QLineEdit::textChanged, this,
           &MainWindow::onGamePathQueryChanged);
   onGamePathQueryChanged(gamePathQuery->text());
+  connect(modsSteamIdListQuery, &QLineEdit::textChanged, this,
+          &MainWindow::onModsSteamIdListQueryChanged);
+  onModsSteamIdListQueryChanged(modsSteamIdListQuery->text());
   updateBackupInfo();
   updateModsInfo();
 }
@@ -172,12 +176,18 @@ void MainWindow::onCopyProcessFinished(int exitCode,
   process->deleteLater();
 }
 void MainWindow::onInstallButtonClicked() {
+  onModsSteamIdListQueryChanged(modsSteamIdListQuery->text());
   ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
       LogLevel::INFO, __FILE__, __LINE__, "Install Mods...");
 
   QString path = gamePathQuery->text();
   QString mods = modsSteamIdListQuery->text();
   QStringList modList = mods.split(",");
+
+  if (mods.contains(" ")) {
+    return;
+  }
+
   bool deleteMods = ui->deleteModsCheckBox->isChecked();
   bool backupMods = ui->backupModsCheckBox->isChecked();
 
@@ -283,7 +293,13 @@ void MainWindow::onRemoveModsBackupButtonClicked() {
     }
   }
 }
-
+void MainWindow::onModsSteamIdListQueryChanged(const QString &modIds) {
+  if (modIds.contains(" ")) {
+    ui->warningLabel2->setText("Error: The mod ID list contains spaces.");
+  } else {
+    ui->warningLabel2->clear();
+  }
+}
 void MainWindow::onGamePathQueryChanged(const QString &path) {
   QString shooterGamePath =
       path + "/ShooterGame/Binaries/Win64/ShooterGame.exe";
