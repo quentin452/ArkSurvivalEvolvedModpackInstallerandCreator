@@ -36,9 +36,6 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
   modsInformationWindow = new ModsInformationWindow(this);
-
-  QString username = QString::fromStdString(LoggerGlobals::UsernameDirectory);
-
   QString gamePath, modsList;
   bool deleteMods, backupMods;
   Configuration::readSettingsFromConfigFile(gamePath);
@@ -142,47 +139,7 @@ void MainWindow::onInstallButtonClicked() {
   bool backupMods = ui->backupModsCheckBox->isChecked();
 
   if (backupMods) {
-    QString modsFolderPath = path + "/Mods/";
-    QString backupFolderPath =
-        "C:\\Users\\" + username + "\\.ArkModIC\\Mods.old\\";
-
-    QDir modsDir(modsFolderPath);
-    QDir backupDir(backupFolderPath);
-
-    if (!backupDir.exists()) {
-      if (!backupDir.mkpath(".")) {
-        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-            LogLevel::ERRORING, __FILE__, __LINE__,
-            "Failed to create backup folder: " +
-                backupFolderPath.toStdString());
-        enableButtons();
-        return;
-      }
-    }
-    QString timestamp =
-        QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
-    QString zipFileName = backupFolderPath + "Mods_" + timestamp + ".zip";
-
-    if (!QDir(modsFolderPath).exists()) {
-      if (!QDir().mkdir(modsFolderPath)) {
-        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-            LogLevel::ERRORING, __FILE__, __LINE__,
-            "Failed to create folder for mods backup: " +
-                modsFolderPath.toStdString());
-        enableButtons();
-        return;
-      }
-    }
-    QProcess::execute("7z a \"" + zipFileName + "\" \"" + modsFolderPath +
-                      "\"");
-    QFile zipFile(zipFileName);
-    if (!zipFile.exists()) {
-      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-          LogLevel::ERRORING, __FILE__, __LINE__,
-          "Failed to create mods backup: " + zipFileName.toStdString());
-      enableButtons();
-      return;
-    }
+    BackupMods(path);
   }
   if (deleteMods) {
     QString modsFolderPath = path + "/Mods/";
@@ -202,6 +159,51 @@ void MainWindow::onInstallButtonClicked() {
   Configuration::saveSettingsToConfigFile(gamePathQuery->text());
 }
 
+void MainWindow::BackupMods(const QString &path) {
+  QString modsFolderPath = path + "/Mods/";
+  QString backupFolderPath =
+      "C:\\Users\\" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
+      "\\.ArkModIC\\Mods.old\\";
+
+  QDir modsDir(modsFolderPath);
+  QDir backupDir(backupFolderPath);
+  QDirIterator it(modsFolderPath, QDir::Files, QDirIterator::Subdirectories);
+  if (!modsDir.exists() || !it.hasNext()) {
+    return;
+  }
+
+  if (!backupDir.exists()) {
+    if (!backupDir.mkpath(".")) {
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+          LogLevel::ERRORING, __FILE__, __LINE__,
+          "Failed to create backup folder: " + backupFolderPath.toStdString());
+      enableButtons();
+      return;
+    }
+  }
+  QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
+  QString zipFileName = backupFolderPath + "Mods_" + timestamp + ".zip";
+
+  if (!QDir(modsFolderPath).exists()) {
+    if (!QDir().mkdir(modsFolderPath)) {
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+          LogLevel::ERRORING, __FILE__, __LINE__,
+          "Failed to create folder for mods backup: " +
+              modsFolderPath.toStdString());
+      enableButtons();
+      return;
+    }
+  }
+  QProcess::execute("7z a \"" + zipFileName + "\" \"" + modsFolderPath + "\"");
+  QFile zipFile(zipFileName);
+  if (!zipFile.exists()) {
+    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+        LogLevel::ERRORING, __FILE__, __LINE__,
+        "Failed to create mods backup: " + zipFileName.toStdString());
+    enableButtons();
+    return;
+  }
+}
 void MainWindow::disableButtons() {
   QList<QPushButton *> allButtons = findChildren<QPushButton *>();
   for (QPushButton *button : allButtons) {
@@ -223,7 +225,9 @@ void MainWindow::onRemoveModsBackupButtonClicked() {
       QMessageBox::Yes | QMessageBox::No);
   if (reply == QMessageBox::Yes) {
     QString backupFolderPath =
-        "C:\\Users\\" + username + "\\.ArkModIC\\Mods.old\\";
+        "C:\\Users\\" +
+        QString::fromStdString(LoggerGlobals::UsernameDirectory) +
+        "\\.ArkModIC\\Mods.old\\";
     QDir backupDir(backupFolderPath);
     if (backupDir.exists()) {
       if (!backupDir.removeRecursively()) {
@@ -266,7 +270,8 @@ void MainWindow::onGamePathQueryChanged(const QString &path) {
 }
 void MainWindow::updateBackupInfo() {
   QString backupFolderPath =
-      "C:\\Users\\" + username + "\\.ArkModIC\\Mods.old\\";
+      "C:\\Users\\" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
+      "\\.ArkModIC\\Mods.old\\";
   quint64 backupSize = ArkModICWindowUtils::getFolderSize(backupFolderPath);
   QString backupSizeText = ArkModICWindowUtils::formatSize(backupSize);
   ui->backupSizeLabel->setText("Backup Size from .ArkModIC Folder: " +
@@ -305,8 +310,6 @@ void MainWindow::onChooseModsFileButtonClicked() {
       modsSteamIdListQuery->setText(modIds);
       Configuration::saveLastUsedModsFileToConfig(filePath);
       ui->modsFileComboBox->setCurrentText(QFileInfo(filePath).fileName());
-
-      // Copier le fichier sélectionné dans le répertoire de sauvegarde
       QString saveFolder =
           "C:/Users/" +
           QString::fromStdString(LoggerGlobals::UsernameDirectory) +

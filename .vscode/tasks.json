@@ -28,10 +28,10 @@
             "command": "powershell.exe",
             "args": [
                 "-Command",
-                "if (!(Test-Path ${workspaceFolder}/build-debug)) { mkdir ${workspaceFolder}/build-debug };",
+                "if (!(Test-Path ${workspaceFolder}/build)) { mkdir ${workspaceFolder}/build };",
                 "cd ${workspaceFolder};",
-                "cmake -S . -B build-debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_STANDARD=17;",
-                "cmake --build build-debug --config Debug;",
+                "cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_STANDARD=17;",
+                "cmake --build build --config Debug;",
             ],
             "group": {
                 "kind": "build",
@@ -62,7 +62,7 @@
         {
             "label": "run-ArkModIC-debug",
             "type": "process",
-            "command": "${workspaceFolder}/build-debug/Debug/ArkModIC.exe",
+            "command": "${workspaceFolder}/build/Debug/ArkModIC.exe",
             "group": {
                 "kind": "build",
                 "isDefault": true

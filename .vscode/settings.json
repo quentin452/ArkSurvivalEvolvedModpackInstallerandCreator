@@ -56,5 +56,5 @@
         "sstream": "cpp"
     },
     "git.ignoreLimitWarning": true,
-    "sonarlint.pathToCompileCommands": "${workspaceFolder}\\build-debug\\compile_commands.json"
+    "sonarlint.pathToCompileCommands": "${workspaceFolder}\\build\\compile_commands.json"
 }

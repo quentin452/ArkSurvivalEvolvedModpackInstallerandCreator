@@ -25,7 +25,6 @@ private:
   Ui::MainWindow *ui;
   QLineEdit *modsSteamIdListQuery;
   std::string LogFilePathForTheThread;
-  QString username;
   ModsInformationWindow *modsInformationWindow;
   QString path;
   QLineEdit *gamePathQuery;
@@ -48,6 +47,7 @@ private:
   void setupConnections();
   void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
   void downloadMods(QString path, QStringList modIDs);
+  void BackupMods(const QString &path);
 private slots:
   void update();
   void onGoToModsInformationClicked();
