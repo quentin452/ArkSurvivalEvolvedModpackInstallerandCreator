@@ -30,8 +30,8 @@
 #include <iostream>
 #include <lmcons.h>
 #include <windows.h>
-int DirRecursivityRemovalDepth = 3;
-int depotOfArkSurvivalEvolvedOnSteam = 346110;
+const int DirRecursivityRemovalDepth = 3;
+const int depotOfArkSurvivalEvolvedOnSteam = 346110;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
