@@ -32,16 +32,11 @@ public:
   void onModsSteamIdListQueryChanged(const QString &modIds);
   void onProcessErrorOccurred(QProcess::ProcessError error);
   void onGamePathQueryChanged(const QString &path);
-
-  void readSettingsFromConfigFile(QString &gamePath, QString &modsList);
-  void readCheckboxStatesFromConfigFile(bool &deleteMods, bool &backupMods);
-  void saveCheckboxStatesToConfigFile(bool deleteMods, bool backupMods);
-  void saveSettingsToConfigFile(const QString &gamePath,
-                                const QString &modsList);
   void onDeleteModsCheckBoxStateChanged(int state);
   void onBackupModsCheckBoxStateChanged(int state);
   void loadModIDsFromFile(const QString &filePath);
-  void updateModsFileComboBox();
+  void resetModsFileComboBox();
+  void setModsFileComboBoxText();
   void onModsFileSelected(int index);
 
 private:
@@ -51,11 +46,6 @@ private:
   std::string LogFilePathForTheThread;
   QString path;
   QString username;
-  std::string CONFIG_FILE_PATH;
-  std::string GAME_PATH_KEY;
-  std::string MODS_LIST_KEY;
-  std::string DELETE_MODS_KEY;
-  std::string BACKUP_MODS_KEY;
   ModsInformationWindow *modsInformationWindow;
 private slots:
   void update();

@@ -1,4 +1,5 @@
 #include <ArkModIC/ArkSEModpackGlobals.h>
+#include <ArkModIC/Configuration.h>
 #include <ArkModIC/mainwindow.h>
 #include <QApplication>
 #include <QMessageBox>
@@ -10,6 +11,7 @@
 #include <shellapi.h>
 #include <tlhelp32.h>
 #include <windows.h>
+
 
 void terminatePreviousInstances() {
   DWORD currentProcessId = GetCurrentProcessId();
@@ -84,7 +86,6 @@ bool elevatePrivileges(const char *exePath) {
 int main(int argc, char *argv[]) {
   terminatePreviousInstances();
   initLoggerThread();
-
   char exePath[MAX_PATH];
   GetModuleFileNameA(NULL, exePath, MAX_PATH);
   if (!elevatePrivileges(exePath)) {

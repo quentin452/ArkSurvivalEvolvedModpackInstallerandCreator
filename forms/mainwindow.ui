@@ -104,6 +104,13 @@
             </property>
           </widget>
         </item>
+        <item row="3" column="4">
+          <widget class="QLabel" name="lastUsedModsFileLabel">
+            <property name="text">
+              <string>Last Used Mod File:</string>
+            </property>
+          </widget>
+        </item>
         <item row="5" column="0">
           <widget class="QPushButton" name="removeModsBackupButton">
             <property name="text">

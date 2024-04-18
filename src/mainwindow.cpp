@@ -3,9 +3,14 @@
 // TODO : ADD informations to know how many space take every mods
 // TODO : ADD A WAY TO KNOW WHICH MOD IS THIS ID BY EXAMPLE 2715085686 by making
 // a list (gui) of installed mods in your Ark Survival Evolved GamePath
+// TODO : ADD number of mods that will be installed nexto the
+// modsSteamIdListQuery
+// TODO : add a way to open path on window explorer from the app (for easy debug
+// or just easily find things)
 #include "ui_mainwindow.h"
 #include <ArkModIC/ArkModICWindowUtils.h>
 #include <ArkModIC/ArkSEModpackGlobals.h>
+#include <ArkModIC/Configuration.h>
 #include <ArkModIC/mainwindow.h>
 #include <ArkModIC/modsinformationwindow.h>
 #include <QDebug>
@@ -15,6 +20,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QProcess>
+#include <QRandomGenerator>
 #include <QSettings>
 #include <QStorageInfo>
 #include <QTimer>
@@ -36,22 +42,14 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->goToModsInformationButton, &QPushButton::clicked, this,
           &MainWindow::onGoToModsInformationClicked);
   QString username = QString::fromStdString(LoggerGlobals::UsernameDirectory);
-  CONFIG_FILE_PATH =
-      "C:/Users/" + LoggerGlobals::UsernameDirectory + "/.ArkModIC/config.ini";
-  GAME_PATH_KEY = "GamePath";
-  MODS_LIST_KEY = "ModsList";
-  DELETE_MODS_KEY = "DeleteMods";
-  BACKUP_MODS_KEY = "BackupMods";
+
   QString gamePath, modsList;
   bool deleteMods, backupMods;
-  readSettingsFromConfigFile(gamePath, modsList);
-  readCheckboxStatesFromConfigFile(deleteMods, backupMods);
-
+  Configuration::readSettingsFromConfigFile(gamePath);
+  Configuration::readCheckboxStatesFromConfigFile(deleteMods, backupMods);
   gamePathQuery = this->findChild<QLineEdit *>("gamePathQuery");
   modsSteamIdListQuery = this->findChild<QLineEdit *>("modsSteamIdListQuery");
   gamePathQuery->setText(gamePath);
-  modsSteamIdListQuery->setText(modsList);
-
   ui->deleteModsCheckBox->setChecked(deleteMods);
   ui->backupModsCheckBox->setChecked(backupMods);
   connect(ui->browseButton, &QPushButton::clicked, this,
@@ -81,60 +79,32 @@ MainWindow::MainWindow(QWidget *parent)
   onGamePathQueryChanged(gamePathQuery->text());
   connect(modsSteamIdListQuery, &QLineEdit::textChanged, this,
           &MainWindow::onModsSteamIdListQueryChanged);
-  onModsSteamIdListQueryChanged(modsSteamIdListQuery->text());
+  QString lastUsedModsFile;
+  Configuration::readLastUsedModsFileFromConfig(lastUsedModsFile);
+  if (!lastUsedModsFile.isEmpty()) {
+    ui->modsFileComboBox->setCurrentText(lastUsedModsFile);
+  }
+  setModsFileComboBoxText();
 }
 MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::update() {
+  resetModsFileComboBox();
   updateBackupInfo();
   updateModsInfo();
-  updateModsFileComboBox();
 }
 void MainWindow::onDeleteModsCheckBoxStateChanged(int state) {
   bool deleteMods = (state == Qt::Checked);
   bool backupMods = ui->backupModsCheckBox->isChecked();
-  saveCheckboxStatesToConfigFile(deleteMods, backupMods);
+  Configuration::saveCheckboxStatesToConfigFile(deleteMods, backupMods);
 }
 
 void MainWindow::onBackupModsCheckBoxStateChanged(int state) {
   bool deleteMods = ui->deleteModsCheckBox->isChecked();
   bool backupMods = (state == Qt::Checked);
-  saveCheckboxStatesToConfigFile(deleteMods, backupMods);
+  Configuration::saveCheckboxStatesToConfigFile(deleteMods, backupMods);
 }
 
-void MainWindow::readSettingsFromConfigFile(QString &gamePath,
-                                            QString &modsList) {
-  QSettings settings(QString::fromStdString(CONFIG_FILE_PATH),
-                     QSettings::IniFormat);
-  gamePath = settings.value(QString::fromStdString(GAME_PATH_KEY)).toString();
-  modsList = settings.value(QString::fromStdString(MODS_LIST_KEY)).toString();
-}
-
-void MainWindow::readCheckboxStatesFromConfigFile(bool &deleteMods,
-                                                  bool &backupMods) {
-  QSettings settings(QString::fromStdString(CONFIG_FILE_PATH),
-                     QSettings::IniFormat);
-  deleteMods =
-      settings.value(QString::fromStdString(DELETE_MODS_KEY), false).toBool();
-  backupMods =
-      settings.value(QString::fromStdString(BACKUP_MODS_KEY), false).toBool();
-}
-
-void MainWindow::saveCheckboxStatesToConfigFile(bool deleteMods,
-                                                bool backupMods) {
-  QSettings settings(QString::fromStdString(CONFIG_FILE_PATH),
-                     QSettings::IniFormat);
-  settings.setValue(QString::fromStdString(DELETE_MODS_KEY), deleteMods);
-  settings.setValue(QString::fromStdString(BACKUP_MODS_KEY), backupMods);
-}
-
-void MainWindow::saveSettingsToConfigFile(const QString &gamePath,
-                                          const QString &modsList) {
-  QSettings settings(QString::fromStdString(CONFIG_FILE_PATH),
-                     QSettings::IniFormat);
-  settings.setValue(QString::fromStdString(GAME_PATH_KEY), gamePath);
-  settings.setValue(QString::fromStdString(MODS_LIST_KEY), modsList);
-}
 void MainWindow::onBrowseButtonClicked() {
   QString directory = QFileDialog::getExistingDirectory(
       this, tr("Select Directory"), QDir::homePath(),
@@ -143,7 +113,7 @@ void MainWindow::onBrowseButtonClicked() {
     gamePathQuery->setText(directory);
     onGamePathQueryChanged(gamePathQuery->text());
   }
-  saveSettingsToConfigFile(gamePathQuery->text(), modsSteamIdListQuery->text());
+  Configuration::saveSettingsToConfigFile(gamePathQuery->text());
 }
 
 void MainWindow::downloadMods(QString path, QStringList modIDs) {
@@ -324,8 +294,8 @@ void MainWindow::onInstallButtonClicked() {
     }
   }
   downloadMods(path, modList);
-  saveCheckboxStatesToConfigFile(deleteMods, backupMods);
-  saveSettingsToConfigFile(gamePathQuery->text(), modsSteamIdListQuery->text());
+  Configuration::saveCheckboxStatesToConfigFile(deleteMods, backupMods);
+  Configuration::saveSettingsToConfigFile(gamePathQuery->text());
 }
 
 void MainWindow::disableButtons() {
@@ -422,18 +392,23 @@ void MainWindow::onChooseModsFileButtonClicked() {
     if (file.open(QIODevice::ReadOnly)) {
       QTextStream in(&file);
       QString modIds = in.readAll();
+      file.close();
       modsSteamIdListQuery->setText(modIds);
+      Configuration::saveLastUsedModsFileToConfig(filePath);
+      ui->modsFileComboBox->setCurrentText(QFileInfo(filePath).fileName());
+
+      // Copier le fichier sélectionné dans le répertoire de sauvegarde
       QString saveFolder =
           "C:/Users/" +
           QString::fromStdString(LoggerGlobals::UsernameDirectory) +
           "/.ArkModIC/ModsIdsListSave";
-      QDir dir(saveFolder);
-      if (!dir.exists()) {
-        dir.mkpath(saveFolder);
+      QDir().mkpath(saveFolder);
+      QString saveFilePath = saveFolder + "/" + QFileInfo(filePath).fileName();
+      if (!QFile::copy(filePath, saveFilePath)) {
+        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+            LogLevel::ERRORING, __FILE__, __LINE__,
+            "Failed to copy file to save folder: " + filePath.toStdString());
       }
-      QString savePath = saveFolder + "/" + QFileInfo(filePath).fileName();
-      QFile::copy(filePath, savePath);
-      file.close();
     }
   }
 }
@@ -442,12 +417,23 @@ void MainWindow::loadModIDsFromFile(const QString &filePath) {
   if (file.open(QIODevice::ReadOnly)) {
     QTextStream in(&file);
     QString modIds = in.readAll();
-    modsSteamIdListQuery->setText(modIds);
     file.close();
+    if (!modIds.isEmpty()) {
+      modsSteamIdListQuery->setText(modIds);
+    } else {
+      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+          LogLevel::ERRORING, __FILE__, __LINE__,
+          "The file is empty or contains invalid data.");
+    }
+  } else {
+    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+        LogLevel::ERRORING, __FILE__, __LINE__,
+        ("Failed to open the file: " + file.errorString()).toStdString());
   }
 }
-
-void MainWindow::updateModsFileComboBox() {
+// TODO try to find why he select the first elements of modFiles instead of
+// lastUsedModsFile (visually not in reality) in background he use the good txt
+void MainWindow::resetModsFileComboBox() {
   QString saveFolder =
       "C:/Users/" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
       "/.ArkModIC/ModsIdsListSave";
@@ -455,20 +441,43 @@ void MainWindow::updateModsFileComboBox() {
   QStringList filters;
   filters << "*.txt";
   QStringList modFiles = dir.entryList(filters, QDir::Files, QDir::Name);
-  QString currentText = ui->modsFileComboBox->currentText();
-
+  disconnect(ui->modsFileComboBox, &QComboBox::currentIndexChanged, this,
+             &MainWindow::onModsFileSelected);
   ui->modsFileComboBox->clear();
-  ui->modsFileComboBox->addItems(modFiles);
-  if (modFiles.contains(currentText)) {
-    ui->modsFileComboBox->setCurrentText(currentText);
+  ui->modsFileComboBox->addItem("");
+  if (!modFiles.isEmpty()) {
+    ui->modsFileComboBox->addItems(modFiles);
+  }
+  connect(ui->modsFileComboBox, &QComboBox::currentIndexChanged, this,
+          &MainWindow::onModsFileSelected);
+  setModsFileComboBoxText();
+  QString lastUsedModsFile;
+  Configuration::readLastUsedModsFileFromConfig(lastUsedModsFile);
+  ui->modsFileComboBox->setCurrentText(lastUsedModsFile);
+  ui->lastUsedModsFileLabel->setText("Last Used Mod File: " + lastUsedModsFile);
+}
+
+void MainWindow::setModsFileComboBoxText() {
+  QString lastUsedModsFile;
+  Configuration::readLastUsedModsFileFromConfig(lastUsedModsFile);
+  ui->modsFileComboBox->setCurrentText(lastUsedModsFile);
+  QFile file(lastUsedModsFile);
+  if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    QTextStream in(&file);
+    QString content = in.readAll();
+    ui->modsSteamIdListQuery->setText(content);
+    file.close();
   }
 }
 
 void MainWindow::onModsFileSelected(int index) {
-  QString saveFolder = "C:/Users/" + QString::fromStdString(LoggerGlobals::UsernameDirectory) + "/.ArkModIC/ModsIdsListSave";
+  QString saveFolder =
+      "C:/Users/" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
+      "/.ArkModIC/ModsIdsListSave";
   QString filePath = saveFolder + "/" + ui->modsFileComboBox->currentText();
   loadModIDsFromFile(filePath);
   onModsSteamIdListQueryChanged(modsSteamIdListQuery->text());
+  Configuration::saveLastUsedModsFileToConfig(filePath);
 }
 
 void MainWindow::onGoToModsInformationClicked() {
