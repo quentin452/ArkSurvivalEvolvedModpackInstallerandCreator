@@ -3,8 +3,6 @@
 // TODO : ADD informations to know how many space take every mods
 // TODO : ADD A WAY TO KNOW WHICH MOD IS THIS ID BY EXAMPLE 2715085686 by making
 // a list (gui) of installed mods in your Ark Survival Evolved GamePath
-// TODO : ADD number of mods that will be installed nexto the
-// modsSteamIdListQuery
 // TODO : add a way to open path on window explorer from the app (for easy debug
 // or just easily find things)
 #include "ui_mainwindow.h"
@@ -67,6 +65,8 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->modsFileComboBox,
           QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           &MainWindow::onModsFileSelected);
+  connect(modsSteamIdListQuery, &QLineEdit::textChanged, this,
+          &MainWindow::updateModsInfo);
   QTimer *timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &MainWindow::update);
   timer->start(1000);
@@ -85,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->modsFileComboBox->setCurrentText(lastUsedModsFile);
   }
   setModsFileComboBoxText();
+  modsSteamIdListQuery->setReadOnly(true);
 }
 MainWindow::~MainWindow() { delete ui; }
 
@@ -368,13 +369,25 @@ void MainWindow::updateBackupInfo() {
   ui->backupSizeLabel->setText("Backup Size from .ArkModIC Folder: " +
                                backupSizeText);
 }
-
 void MainWindow::updateModsInfo() {
   QString modsFolderPath = gamePathQuery->text() + "/Mods/";
   quint64 modsSize = ArkModICWindowUtils::getFolderSize(modsFolderPath);
   QString modsSizeText = ArkModICWindowUtils::formatSize(modsSize);
   ui->modsSizeLabel->setText("Mods Size from Ark Surival Evolved: " +
                              modsSizeText);
+
+  QString modsList = modsSteamIdListQuery->text().trimmed();
+  QStringList modIds = modsList.split(",");
+  modIds.removeAll("");
+  int numberOfMods = modIds.count();
+  ui->numberOfModsLabel->setText("Number of Mods in the txt list: " +
+                                 QString::number(numberOfMods));
+
+  QDir modsDir(modsFolderPath);
+  QStringList modFolders = modsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+  int numberOfModFolders = modFolders.size();
+  ui->numberOfModFilesLabel->setText("Number of Mods in the Mods folder: " +
+                                     QString::number(numberOfModFolders));
 }
 
 void MainWindow::onProcessErrorOccurred(QProcess::ProcessError error) {
