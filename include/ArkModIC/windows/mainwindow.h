@@ -6,7 +6,7 @@
 #include <QProcess>
 #include <string>
 
-#include <ArkModIC/modsinformationwindow.h>
+#include <ArkModIC/windows/modsinformationwindow.h>
 
 namespace Ui {
 class MainWindow;

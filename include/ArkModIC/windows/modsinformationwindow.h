@@ -1,7 +1,7 @@
 #ifndef MODSINFORMATIONWINDOW_H
 #define MODSINFORMATIONWINDOW_H
 
-#include <ArkModIC/mainwindow.h>
+#include <ArkModIC/windows/mainwindow.h>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QProcess>

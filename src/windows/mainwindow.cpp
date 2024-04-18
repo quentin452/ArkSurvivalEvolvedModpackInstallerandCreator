@@ -8,11 +8,11 @@
 // TODO : add a way to open path on window explorer from the app (for easy debug
 // or just easily find things)
 #include "ui_mainwindow.h"
-#include <ArkModIC/ArkModICWindowUtils.h>
-#include <ArkModIC/ArkSEModpackGlobals.h>
-#include <ArkModIC/Configuration.h>
-#include <ArkModIC/mainwindow.h>
-#include <ArkModIC/modsinformationwindow.h>
+#include <ArkModIC/utils/ArkModICWindowUtils.h>
+#include <ArkModIC/utils/ArkSEModpackGlobals.h>
+#include <ArkModIC/utils/Configuration.h>
+#include <ArkModIC/windows/mainwindow.h>
+#include <ArkModIC/windows/modsinformationwindow.h>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>

@@ -1,5 +1,5 @@
-#include <ArkModIC/ArkSEModpackGlobals.h>
-#include <ArkModIC/ArkUtils.h>
+#include <ArkModIC/utils/ArkSEModpackGlobals.h>
+#include <ArkModIC/utils/ArkUtils.h>
 #include <QFile>
 #include <QSettings>
 #include <QString>

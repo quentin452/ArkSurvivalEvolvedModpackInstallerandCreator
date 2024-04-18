@@ -1,6 +1,6 @@
-#include <ArkModIC/ArkSEModpackGlobals.h>
-#include <ArkModIC/Configuration.h>
-#include <ArkModIC/mainwindow.h>
+#include <ArkModIC/utils/ArkSEModpackGlobals.h>
+#include <ArkModIC/utils/Configuration.h>
+#include <ArkModIC/windows/mainwindow.h>
 #include <QApplication>
 #include <QMessageBox>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
@@ -11,7 +11,6 @@
 #include <shellapi.h>
 #include <tlhelp32.h>
 #include <windows.h>
-
 
 void terminatePreviousInstances() {
   DWORD currentProcessId = GetCurrentProcessId();

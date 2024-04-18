@@ -1,4 +1,4 @@
-#include <ArkModIC/ArkSEModpackGlobals.h>
+#include <ArkModIC/utils/ArkSEModpackGlobals.h>
 #include <ThreadedLoggerForCPP/LoggerThread.hpp>
 #include <string>
 

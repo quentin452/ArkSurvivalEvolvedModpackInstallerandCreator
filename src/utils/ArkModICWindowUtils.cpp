@@ -1,4 +1,4 @@
-#include <ArkModIC/ArkModICWindowUtils.h>
+#include <ArkModIC/utils/ArkModICWindowUtils.h>
 #include <QDir>
 #include <QFileInfo>
 

@@ -1,5 +1,5 @@
-#include <ArkModIC/ArkUtils.h>
-#include <ArkModIC/Configuration.h>
+#include <ArkModIC/utils/ArkUtils.h>
+#include <ArkModIC/utils/Configuration.h>
 #include <QFile>
 #include <QSettings>
 #include <QString>
