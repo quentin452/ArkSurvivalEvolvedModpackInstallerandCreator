@@ -104,7 +104,7 @@
             </property>
           </widget>
         </item>
-        <item row="3" column="4">
+        <item row="1" column="1">
           <widget class="QLabel" name="lastUsedModsFileLabel">
             <property name="text">
               <string>Last Used Mod File:</string>
