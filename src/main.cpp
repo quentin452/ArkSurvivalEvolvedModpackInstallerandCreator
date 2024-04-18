@@ -1,5 +1,6 @@
 #include <ArkModIC/utils/ArkSEModpackGlobals.h>
 #include <ArkModIC/utils/Configuration.h>
+#include <ArkModIC/windows/!windowutils.h>
 #include <ArkModIC/windows/mainwindow.h>
 #include <QApplication>
 #include <QMessageBox>
@@ -10,7 +11,7 @@
 #include <iostream>
 #include <shellapi.h>
 #include <tlhelp32.h>
-#include <windows.h>
+#include <Windows.h>
 
 void terminatePreviousInstances() {
   DWORD currentProcessId = GetCurrentProcessId();
@@ -104,8 +105,10 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   try {
-    MainWindow *window = new MainWindow();
-    window->show();
+    ArkSEModpackGlobals::MainWindowInstance = new MainWindow();
+    ArkSEModpackGlobals::MainWindowInstance->show();
+    ArkSEModpackGlobals::ModDownloaderInstance = new ModDownloader();
+    ArkSEModpackGlobals::WindowUtilsInstance = new WindowUtils();
     QObject::connect(&app, &QApplication::aboutToQuit, [&]() {
       ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
           LogLevel::INFO, __FILE__, __LINE__, "Exiting application...");

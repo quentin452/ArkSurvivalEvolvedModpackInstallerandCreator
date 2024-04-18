@@ -20,14 +20,16 @@ public:
   ~MainWindow();
   void disableButtons();
   void enableButtons();
+  const int DirRecursivityRemovalDepth = 3;
+  const int depotOfArkSurvivalEvolvedOnSteam = 346110;
+  QString path;
+  QLineEdit *gamePathQuery;
 
 private:
   Ui::MainWindow *ui;
   QLineEdit *modsSteamIdListQuery;
   std::string LogFilePathForTheThread;
   ModsInformationWindow *modsInformationWindow;
-  QString path;
-  QLineEdit *gamePathQuery;
 
   void onProcessErrorOccurred(QProcess::ProcessError error);
   void onBrowseButtonClicked();
@@ -40,17 +42,13 @@ private:
   void onGamePathQueryChanged(const QString &path);
   void onDeleteModsCheckBoxStateChanged(int state);
   void onBackupModsCheckBoxStateChanged(int state);
-  void loadModIDsFromFile(const QString &filePath);
   void resetModsFileComboBox();
   void setModsFileComboBoxText();
   void onModsFileSelected(int index);
   void setupConnections();
-  void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
-  void downloadMods(QString path, QStringList modIDs);
   void BackupMods(const QString &path);
 private slots:
   void update();
-  void onGoToModsInformationClicked();
 };
 
 #endif // MAINWINDOW_H

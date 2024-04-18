@@ -22,7 +22,6 @@ public:
   explicit ModsInformationWindow(QWidget *parent = nullptr);
   ~ModsInformationWindow();
 public slots:
-  void goToMainWindow();
 
 private:
   Ui::ModsInformationWindow *ui;
