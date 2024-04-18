@@ -431,8 +431,7 @@ void MainWindow::loadModIDsFromFile(const QString &filePath) {
         ("Failed to open the file: " + file.errorString()).toStdString());
   }
 }
-// TODO try to find why he select the first elements of modFiles instead of
-// lastUsedModsFile (visually not in reality) in background he use the good txt
+
 void MainWindow::resetModsFileComboBox() {
   QString saveFolder =
       "C:/Users/" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
