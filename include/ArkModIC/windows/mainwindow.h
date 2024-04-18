@@ -18,19 +18,26 @@ class MainWindow : public QMainWindow {
 public:
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
-  void onBrowseButtonClicked();
-  void downloadMods(QString path, QStringList modIDs);
-  void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
-  void onCopyProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
-  void onInstallButtonClicked();
   void disableButtons();
   void enableButtons();
+
+private:
+  Ui::MainWindow *ui;
+  QLineEdit *modsSteamIdListQuery;
+  std::string LogFilePathForTheThread;
+  QString username;
+  ModsInformationWindow *modsInformationWindow;
+  QString path;
+  QLineEdit *gamePathQuery;
+
+  void onProcessErrorOccurred(QProcess::ProcessError error);
+  void onBrowseButtonClicked();
+  void onInstallButtonClicked();
   void onRemoveModsBackupButtonClicked();
   void updateBackupInfo();
   void updateModsInfo();
   void onChooseModsFileButtonClicked();
   void onModsSteamIdListQueryChanged(const QString &modIds);
-  void onProcessErrorOccurred(QProcess::ProcessError error);
   void onGamePathQueryChanged(const QString &path);
   void onDeleteModsCheckBoxStateChanged(int state);
   void onBackupModsCheckBoxStateChanged(int state);
@@ -38,15 +45,9 @@ public:
   void resetModsFileComboBox();
   void setModsFileComboBoxText();
   void onModsFileSelected(int index);
-
-private:
-  Ui::MainWindow *ui;
-  QLineEdit *gamePathQuery;
-  QLineEdit *modsSteamIdListQuery;
-  std::string LogFilePathForTheThread;
-  QString path;
-  QString username;
-  ModsInformationWindow *modsInformationWindow;
+  void setupConnections();
+  void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
+  void downloadMods(QString path, QStringList modIDs);
 private slots:
   void update();
   void onGoToModsInformationClicked();
