@@ -5,7 +5,6 @@
 #include <ArkModIC/windows/mainwindow.h>
 #include <ArkModIC/windows/modsinformationwindow.h>
 #include <cstdint>
-
 ModsInformationWindow::ModsInformationWindow(QWidget *parent)
     : UpdateHandlerWithQWindow(parent), ui(new Ui::ModsInformationWindow) {
   ui->setupUi(this);
@@ -13,6 +12,7 @@ ModsInformationWindow::ModsInformationWindow(QWidget *parent)
     WindowUtils::SetCurrentWindow(this,
                                   ArkSEModpackGlobals::MainWindowInstance);
   });
+  verticalLayout = new QVBoxLayout();
 }
 
 ModsInformationWindow::~ModsInformationWindow() { delete ui; }
@@ -22,22 +22,32 @@ void ModsInformationWindow::updateCode() {
     queryAndDisplayModInfo();
   }
 }
-
 void ModsInformationWindow::displayModInfo(
     const QMap<uint64_t, QString> &modInfoMap) {
   for (auto label : modLabels.values()) {
     delete label;
   }
   modLabels.clear();
-  QVBoxLayout *verticalLayout = new QVBoxLayout();
+  QLayoutItem *child;
+  while ((child = ui->modColumnsLayout->takeAt(0)) != nullptr) {
+    delete child->widget();
+    delete child;
+  }
+  QLayout *layout = ui->modColumnsLayout->layout();
+  if (layout) {
+    QLayoutItem *item;
+    while ((item = layout->takeAt(0)) != nullptr) {
+      delete item->widget();
+      delete item;
+    }
+  }
   for (auto it = modInfoMap.begin(); it != modInfoMap.end(); ++it) {
     QString labelText = QString("Mod ID: %1, Mod Title: %2")
                             .arg(QString::number(it.key()), it.value());
     QLabel *label = new QLabel(labelText);
-    verticalLayout->addWidget(label);
+    ui->modColumnsLayout->addWidget(label);
     modLabels.insert(it.key(), label);
   }
-  ui->modColumnsLayout->addLayout(verticalLayout);
 }
 
 void ModsInformationWindow::queryAndDisplayModInfo() {
@@ -56,12 +66,16 @@ void ModsInformationWindow::queryAndDisplayModInfo() {
             .arg(modId);
     QNetworkRequest request(url);
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    connect(manager, &QNetworkAccessManager::finished, manager,
+            &QNetworkAccessManager::deleteLater);
     QNetworkReply *reply = manager->get(request);
     connect(manager, &QNetworkAccessManager::finished, this,
             &ModsInformationWindow::onNetworkReply);
   }
 }
+
 void ModsInformationWindow::onNetworkReply(QNetworkReply *reply) {
+  reply->deleteLater();
   QString url = reply->url().toString();
   QRegularExpression idRegex("\\b(id=)(\\d+)\\b");
   QRegularExpressionMatch match = idRegex.match(url);
@@ -99,5 +113,6 @@ void ModsInformationWindow::onNetworkReply(QNetworkReply *reply) {
   receivedResponses++;
   if (receivedResponses == totalRequests) {
     displayModInfo(allModInfo);
+    sender()->deleteLater();
   }
 }

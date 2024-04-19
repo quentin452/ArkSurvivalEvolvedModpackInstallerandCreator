@@ -1,3 +1,4 @@
+#include <QCloseEvent>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
@@ -6,7 +7,9 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLabel>
 #include <QLineEdit>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -17,6 +20,4 @@
 #include <QStorageInfo>
 #include <QTimer>
 #include <QUrlQuery>
-#include <QMainWindow>
-#include <QCloseEvent>
-#include <QLabel>
+#include <QVBoxLayout>

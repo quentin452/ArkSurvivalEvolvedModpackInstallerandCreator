@@ -22,7 +22,6 @@
 #include <iostream>
 #include <lmcons.h>
 
-
 MainWindow::MainWindow(QWidget *parent)
     : UpdateHandlerWithQWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);

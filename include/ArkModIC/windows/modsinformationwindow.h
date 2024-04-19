@@ -27,6 +27,7 @@ private:
   QMap<uint64_t, QString> allModInfo;
   int totalRequests = 0;
   int receivedResponses = 0;
+  QVBoxLayout *verticalLayout;
 private slots:
   void onNetworkReply(QNetworkReply *reply);
 };
