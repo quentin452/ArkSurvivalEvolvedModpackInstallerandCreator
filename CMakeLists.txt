@@ -4,6 +4,9 @@ if (WIN32)
 elseif(UNIX)
     project(ArkModIC)
 endif()
+# Enable LTO Optimizations(Link-Time Optimization) 
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(LIBRAIRIES_DIR "${CMAKE_SOURCE_DIR}/!libsanddlls/libs-include")
 set(ALL_INCLUDE_DIR "${LIBRAIRIES_DIR}/ThreadedLoggerForCPP-main/libs/include")
@@ -64,10 +67,10 @@ set(Qt_Plugins_Path $ENV{QTDIR}/plugins)
 
 # Liste des DLLs nécessaires
 set(DLL_List
-    "Qt6Core.dll"
-    "Qt6Network.dll"
-    "Qt6Widgets.dll"
-    "Qt6Gui.dll"
+    "${Qt_Bin_Path}/Qt6Core.dll"
+    "${Qt_Bin_Path}/Qt6Network.dll"
+    "${Qt_Bin_Path}/Qt6Widgets.dll"
+    "${Qt_Bin_Path}/Qt6Gui.dll"
 )
 
 # Liste des plugins nécessaires
@@ -83,7 +86,7 @@ set(Destination_Path "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 # Copier les DLLs nécessaires après la construction si elles n'existent pas déjà
 foreach(DLL ${DLL_List})
     # Chemin complet de la DLL
-    set(DLL_Path "${Qt_Bin_Path}/${DLL}")
+    set(DLL_Path "${DLL}")
 
     # Copier la DLL uniquement si elle n'existe pas déjà dans le dossier de sortie
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -93,6 +96,7 @@ foreach(DLL ${DLL_List})
         COMMENT "Copying ${DLL}"
     )
 endforeach()
+
 
 # Copier les plugins nécessaires après la construction
 foreach(Plugin ${Plugins_List})
@@ -110,7 +114,6 @@ endforeach()
 
 #===================== LINKING LIBRARIES =======================#
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Network Qt6::Widgets)
-
 
 #===================== GENERATE COMPILATIONS DATABASE =======================#
 set(common_compile_options

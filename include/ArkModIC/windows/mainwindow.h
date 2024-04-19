@@ -5,6 +5,7 @@
 #include <QCloseEvent>
 #include <QLineEdit>
 #include <QMainWindow>
+#include <QNetworkReply>
 #include <QProcess>
 #include <string>
 
@@ -25,14 +26,12 @@ public:
   QString path;
   QLineEdit *gamePathQuery;
   bool isDownloading = false;
+  QLineEdit *modsSteamIdListQuery;
 
 private:
   Ui::MainWindow *ui;
-  QLineEdit *modsSteamIdListQuery;
   std::string LogFilePathForTheThread;
-  ModsInformationWindow *modsInformationWindow;
 
-  void onProcessErrorOccurred(QProcess::ProcessError error);
   void onBrowseButtonClicked();
   void onInstallButtonClicked();
   void onRemoveModsBackupButtonClicked();
@@ -48,6 +47,7 @@ private:
   void onModsFileSelected(int index);
   void setupConnections();
   bool BackupMods(const QString &path);
+
 private slots:
   void update();
 

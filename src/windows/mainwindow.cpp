@@ -18,7 +18,14 @@
 #include <QDirIterator>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QUrlQuery>
+#include <QNetworkRequest>
 #include <QProcess>
 #include <QRandomGenerator>
 #include <QSettings>
@@ -35,7 +42,6 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
-  modsInformationWindow = new ModsInformationWindow(this);
   QString gamePath, modsList;
   bool deleteMods, backupMods;
   Configuration::readSettingsFromConfigFile(gamePath);
@@ -68,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::setupConnections() {
   connect(ui->goToModsInformationButton, &QPushButton::clicked, this, [=]() {
-    WindowUtils::SetCurrentWindow(this, modsInformationWindow);
+    WindowUtils::SetCurrentWindow(this, ArkSEModpackGlobals::ModInformationWindowInstance);
   });
   connect(ui->browseButton, &QPushButton::clicked, this,
           &MainWindow::onBrowseButtonClicked);

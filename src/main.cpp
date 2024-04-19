@@ -2,6 +2,7 @@
 #include <ArkModIC/utils/Configuration.h>
 #include <ArkModIC/windows/!windowutils.h>
 #include <ArkModIC/windows/mainwindow.h>
+#include <ArkModIC/windows/modsinformationwindow.h>
 #include <QApplication>
 #include <QMessageBox>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
@@ -11,7 +12,6 @@
 #include <iostream>
 #include <shellapi.h>
 #include <tlhelp32.h>
-#include <Windows.h>
 
 void terminatePreviousInstances() {
   DWORD currentProcessId = GetCurrentProcessId();
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
   terminatePreviousInstances();
   initLoggerThread();
   char exePath[MAX_PATH];
-  GetModuleFileNameA(NULL, exePath, MAX_PATH);
+  GetModuleFileNameA(nullptr, exePath, MAX_PATH);
   if (!elevatePrivileges(exePath)) {
     ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
         LogLevel::ERRORING, __FILE__, __LINE__,
@@ -95,7 +95,6 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
     return 1;
   }
-
   QApplication app(argc, argv);
   char *steamcmdPath = std::getenv("steamcmd");
   if (steamcmdPath == nullptr) {
@@ -106,6 +105,7 @@ int main(int argc, char *argv[]) {
   }
   try {
     ArkSEModpackGlobals::MainWindowInstance = new MainWindow();
+    ArkSEModpackGlobals::ModInformationWindowInstance = new ModsInformationWindow();
     ArkSEModpackGlobals::MainWindowInstance->show();
     ArkSEModpackGlobals::ModDownloaderInstance = new ModDownloader();
     ArkSEModpackGlobals::WindowUtilsInstance = new WindowUtils();
