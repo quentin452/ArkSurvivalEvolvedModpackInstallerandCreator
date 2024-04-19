@@ -12,10 +12,12 @@
     </property>
     <widget class="QWidget" name="centralwidget">
       <layout class="QVBoxLayout" name="verticalLayout">
-        <item row="0" column="0">
-          <widget class="QTextEdit" name="textEdit"/>
+        <item>
+          <widget class="QWidget" name="modColumnsWidget">
+            <layout class="QVBoxLayout" name="modColumnsLayout"/>
+          </widget>
         </item>
-        <item row="1" column="0">
+        <item>
           <widget class="QPushButton" name="goToMainWindowButton">
             <property name="text">
               <string>Go to Main Menu</string>

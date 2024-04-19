@@ -42,9 +42,9 @@ public:
 
 private:
   Ui::ModsInformationWindow *ui;
-
+  QMap<uint64_t, QLabel *> modLabels;
 private slots:
-  void onNetworkReplyonNetworkReply(QNetworkReply *reply);
+  void onNetworkReply(QNetworkReply *reply);
 };
 
 #endif // MODSINFORMATIONWINDOW_H
