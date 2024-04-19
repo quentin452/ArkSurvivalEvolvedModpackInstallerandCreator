@@ -124,43 +124,54 @@ void MainWindow::onBrowseButtonClicked() {
 }
 
 void MainWindow::onInstallButtonClicked() {
-  onModsSteamIdListQueryChanged(modsSteamIdListQuery->text());
-  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-      LogLevel::INFO, __FILE__, __LINE__, "Install Mods...");
+  try {
+    onModsSteamIdListQueryChanged(modsSteamIdListQuery->text());
+    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+        LogLevel::INFO, __FILE__, __LINE__, "Install Mods...");
 
-  QString path = gamePathQuery->text();
-  QString mods = modsSteamIdListQuery->text();
-  QStringList modList = mods.split(",");
+    QString path = gamePathQuery->text();
+    QString mods = modsSteamIdListQuery->text();
+    QStringList modList = mods.split(",");
 
-  if (mods.contains(" ")) {
-    return;
-  }
+    if (mods.contains(" ")) {
+      return;
+    }
 
-  bool deleteMods = ui->deleteModsCheckBox->isChecked();
-  bool backupMods = ui->backupModsCheckBox->isChecked();
+    bool deleteMods = ui->deleteModsCheckBox->isChecked();
+    bool backupMods = ui->backupModsCheckBox->isChecked();
 
-  if (backupMods) {
-    BackupMods(path);
-  }
-  if (deleteMods) {
-    QString modsFolderPath = path + "/Mods/";
-    QDir modsDir(modsFolderPath);
-    if (modsDir.exists()) {
-      if (!modsDir.removeRecursively()) {
-        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-            LogLevel::ERRORING, __FILE__, __LINE__,
-            "Failed to delete Mods folder: " + modsFolderPath.toStdString());
-        enableButtons();
-        return;
+    if (backupMods) {
+      if (!BackupMods(path)) {
+        throw std::runtime_error("Failed to backup mods");
       }
     }
+    if (deleteMods) {
+      QString modsFolderPath = path + "/Mods/";
+      QDir modsDir(modsFolderPath);
+      if (modsDir.exists()) {
+        if (!modsDir.removeRecursively()) {
+          ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+              LogLevel::ERRORING, __FILE__, __LINE__,
+              "Failed to delete Mods folder: " + modsFolderPath.toStdString());
+          throw std::runtime_error("Failed to delete Mods folder");
+        }
+      }
+    }
+    ArkSEModpackGlobals::ModDownloaderInstance->downloadMods(path, modList);
+    Configuration::saveCheckboxStatesToConfigFile(deleteMods, backupMods);
+    Configuration::saveSettingsToConfigFile(gamePathQuery->text());
+  } catch (const std::exception &e) {
+    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+        LogLevel::ERRORING, __FILE__, __LINE__,
+        "An error occurred while installing mods: " + std::string(e.what()));
+    enableButtons();
+    QMessageBox::critical(this, "Error",
+                          "An error occurred while installing mods: " +
+                              QString(e.what()));
   }
-  ArkSEModpackGlobals::ModDownloaderInstance->downloadMods(path, modList);
-  Configuration::saveCheckboxStatesToConfigFile(deleteMods, backupMods);
-  Configuration::saveSettingsToConfigFile(gamePathQuery->text());
 }
 
-void MainWindow::BackupMods(const QString &path) {
+bool MainWindow::BackupMods(const QString &path) {
   QString modsFolderPath = path + "/Mods/";
   QString backupFolderPath =
       "C:\\Users\\" + QString::fromStdString(LoggerGlobals::UsernameDirectory) +
@@ -170,7 +181,7 @@ void MainWindow::BackupMods(const QString &path) {
   QDir backupDir(backupFolderPath);
   QDirIterator it(modsFolderPath, QDir::Files, QDirIterator::Subdirectories);
   if (!modsDir.exists() || !it.hasNext()) {
-    return;
+    return true;
   }
 
   if (!backupDir.exists()) {
@@ -178,8 +189,7 @@ void MainWindow::BackupMods(const QString &path) {
       ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
           LogLevel::ERRORING, __FILE__, __LINE__,
           "Failed to create backup folder: " + backupFolderPath.toStdString());
-      enableButtons();
-      return;
+      return false;
     }
   }
   QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
@@ -191,8 +201,7 @@ void MainWindow::BackupMods(const QString &path) {
           LogLevel::ERRORING, __FILE__, __LINE__,
           "Failed to create folder for mods backup: " +
               modsFolderPath.toStdString());
-      enableButtons();
-      return;
+      return false;
     }
   }
   QProcess::execute("7z a \"" + zipFileName + "\" \"" + modsFolderPath + "\"");
@@ -201,9 +210,9 @@ void MainWindow::BackupMods(const QString &path) {
     ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
         LogLevel::ERRORING, __FILE__, __LINE__,
         "Failed to create mods backup: " + zipFileName.toStdString());
-    enableButtons();
-    return;
+    return false;
   }
+  return true;
 }
 void MainWindow::disableButtons() {
   QList<QPushButton *> allButtons = findChildren<QPushButton *>();

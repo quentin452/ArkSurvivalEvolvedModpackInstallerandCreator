@@ -12,7 +12,7 @@ public:
   explicit ModDownloader();
   ~ModDownloader();
   void downloadMods(QString path, QStringList modIDs);
-
+  void ReenableMainWindowButtons();
 public slots:
   void onProcessErrorOccurred(QProcess::ProcessError error);
   void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);

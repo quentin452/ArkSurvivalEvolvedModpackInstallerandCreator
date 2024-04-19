@@ -31,8 +31,10 @@ ModDownloader::~ModDownloader() {}
 
 void ModDownloader::downloadMods(QString path, QStringList modIDs) {
   ArkSEModpackGlobals::MainWindowInstance->disableButtons();
+  ArkSEModpackGlobals::MainWindowInstance->isDownloading = true;
   ArkSEModpackGlobals::MainWindowInstance->path = path;
   try {
+
     QString steamcmdPath = "steamcmd.exe";
     QProcess *process = new QProcess(this);
     process->setProgram("cmd.exe");
@@ -43,6 +45,7 @@ void ModDownloader::downloadMods(QString path, QStringList modIDs) {
               << "steamcmd.exe"
               << "+force_install_dir" << path << "+login"
               << "anonymous";
+
     foreach (QString modID, modIDs) {
       arguments << "+workshop_download_item"
                 << QString::number(ArkSEModpackGlobals::MainWindowInstance
@@ -63,6 +66,7 @@ void ModDownloader::downloadMods(QString path, QStringList modIDs) {
         LogLevel::ERRORING, __FILE__, __LINE__,
         "An error occurred while executing the command: " +
             std::string(e.what()));
+    ReenableMainWindowButtons();
   }
 }
 
@@ -71,75 +75,83 @@ void ModDownloader::onProcessFinished(int exitCode,
   QProcess *process = qobject_cast<QProcess *>(sender());
   if (!process)
     return;
-  if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-    QString sourcePath =
-        ArkSEModpackGlobals::MainWindowInstance->gamePathQuery->text() +
-        "/steamapps/workshop/content/" +
-        QString::number(ArkSEModpackGlobals::MainWindowInstance
-                            ->depotOfArkSurvivalEvolvedOnSteam) +
-        "/";
-    QDir sourceDir(sourcePath);
-    if (!sourceDir.exists()) {
-      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-          LogLevel::ERRORING, __FILE__, __LINE__,
-          "Source directory does not exist: " + sourcePath.toStdString());
-      ArkSEModpackGlobals::MainWindowInstance->enableButtons();
-      return;
-    }
-    QString destPath = ArkSEModpackGlobals::MainWindowInstance->path + "/Mods/";
-    if (!QDir(destPath).exists()) {
-      QDir().mkpath(destPath);
-    }
-    QDirIterator it(sourcePath, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot,
-                    QDirIterator::Subdirectories);
-    while (it.hasNext()) {
-      QString filePath = it.next();
-      QString relativePath = sourceDir.relativeFilePath(filePath);
-      QString destFilePath = destPath + QDir::separator() + relativePath;
+  try {
+    if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
+      QString sourcePath =
+          ArkSEModpackGlobals::MainWindowInstance->gamePathQuery->text() +
+          "/steamapps/workshop/content/" +
+          QString::number(ArkSEModpackGlobals::MainWindowInstance
+                              ->depotOfArkSurvivalEvolvedOnSteam) +
+          "/";
+      QDir sourceDir(sourcePath);
+      if (!sourceDir.exists()) {
+        throw std::runtime_error("Source directory does not exist: " +
+                                 sourcePath.toStdString());
+      }
 
-      if (QFileInfo(filePath).isDir()) {
-        QDir(destFilePath).mkpath(".");
-      } else {
-        if (!QFile::copy(filePath, destFilePath)) {
-          ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-              LogLevel::ERRORING, __FILE__, __LINE__,
-              "Failed to copy file: " + filePath.toStdString());
+      QString destPath =
+          ArkSEModpackGlobals::MainWindowInstance->path + "/Mods/";
+      if (!QDir(destPath).exists()) {
+        QDir().mkpath(destPath);
+      }
+      QDirIterator it(sourcePath,
+                      QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot,
+                      QDirIterator::Subdirectories);
+      while (it.hasNext()) {
+        QString filePath = it.next();
+        QString relativePath = sourceDir.relativeFilePath(filePath);
+        QString destFilePath = destPath + QDir::separator() + relativePath;
+
+        if (QFileInfo(filePath).isDir()) {
+          QDir(destFilePath).mkpath(".");
+        } else {
+          if (!QFile::copy(filePath, destFilePath)) {
+            throw std::runtime_error("Failed to copy file: " +
+                                     filePath.toStdString());
+          }
         }
       }
-    }
-    for (int i = 0;
-         i <
-         ArkSEModpackGlobals::MainWindowInstance->DirRecursivityRemovalDepth;
-         ++i) {
-      QDir parentDir = sourceDir;
-      parentDir.cdUp();
-      sourceDir = parentDir;
-    }
-    if (sourceDir.removeRecursively()) {
+      for (int i = 0;
+           i <
+           ArkSEModpackGlobals::MainWindowInstance->DirRecursivityRemovalDepth;
+           ++i) {
+        QDir parentDir = sourceDir;
+        parentDir.cdUp();
+        sourceDir = parentDir;
+      }
+      if (sourceDir.removeRecursively()) {
+        ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+            LogLevel::INFO, __FILE__, __LINE__,
+            "Source directory deleted successfully: " +
+                sourcePath.toStdString());
+      } else {
+        throw std::runtime_error("Failed to delete source directory: " +
+                                 sourcePath.toStdString());
+      }
       ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
           LogLevel::INFO, __FILE__, __LINE__,
-          "Source directory deleted successfully: " + sourcePath.toStdString());
+          "Files copied from directory " + sourcePath.toStdString() + " to " +
+              destPath.toStdString());
     } else {
-      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-          LogLevel::ERRORING, __FILE__, __LINE__,
-          "Failed to delete source directory: " + sourcePath.toStdString());
+      throw std::runtime_error("Failed to install mods");
     }
+  } catch (const std::exception &e) {
     ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-        LogLevel::INFO, __FILE__, __LINE__,
-        "Files copied from directory " + sourcePath.toStdString() + " to " +
-            destPath.toStdString());
-  } else {
-    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-        LogLevel::ERRORING, __FILE__, __LINE__, "Failed to install mods");
+        LogLevel::ERRORING, __FILE__, __LINE__,
+        std::string("An error occurred: ") + e.what());
   }
 
   process->deleteLater();
-  ArkSEModpackGlobals::MainWindowInstance->enableButtons();
+  ReenableMainWindowButtons();
 }
-
 void ModDownloader::onProcessErrorOccurred(QProcess::ProcessError error) {
   ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
       LogLevel::ERRORING, __FILE__, __LINE__,
       "Error occurred in SteamCMD process: " + error);
+  ReenableMainWindowButtons();
+}
+
+void ModDownloader::ReenableMainWindowButtons() {
   ArkSEModpackGlobals::MainWindowInstance->enableButtons();
+  ArkSEModpackGlobals::MainWindowInstance->isDownloading = false;
 }

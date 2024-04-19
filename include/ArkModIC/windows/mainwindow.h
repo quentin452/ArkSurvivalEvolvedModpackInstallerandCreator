@@ -1,12 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <ArkModIC/windows/modsinformationwindow.h>
+#include <QCloseEvent>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QProcess>
 #include <string>
-
-#include <ArkModIC/windows/modsinformationwindow.h>
 
 namespace Ui {
 class MainWindow;
@@ -24,6 +24,7 @@ public:
   const int depotOfArkSurvivalEvolvedOnSteam = 346110;
   QString path;
   QLineEdit *gamePathQuery;
+  bool isDownloading = false;
 
 private:
   Ui::MainWindow *ui;
@@ -46,9 +47,18 @@ private:
   void setModsFileComboBoxText();
   void onModsFileSelected(int index);
   void setupConnections();
-  void BackupMods(const QString &path);
+  bool BackupMods(const QString &path);
 private slots:
   void update();
+
+protected:
+  void closeEvent(QCloseEvent *event) override {
+    if (isDownloading) {
+      event->ignore();
+    } else {
+      event->accept();
+    }
+  }
 };
 
 #endif // MAINWINDOW_H
