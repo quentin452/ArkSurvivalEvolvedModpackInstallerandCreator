@@ -1,7 +1,7 @@
 #ifndef ArkModICWindowUtils_H
 #define ArkModICWindowUtils_H
 
-#include <QString>
+#include <ArkModIC/utils/QTINCLUDE.h>
 
 class ArkModICWindowUtils {
 public:

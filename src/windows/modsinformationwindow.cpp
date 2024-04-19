@@ -1,29 +1,9 @@
 #include "ui_modsinformationwindow.h"
 #include <ArkModIC/utils/ArkSEModpackGlobals.h>
+#include <ArkModIC/utils/QTINCLUDE.h>
 #include <ArkModIC/windows/!windowutils.h>
 #include <ArkModIC/windows/mainwindow.h>
 #include <ArkModIC/windows/modsinformationwindow.h>
-#include <QDebug>
-#include <QDir>
-#include <QDirIterator>
-#include <QFileDialog>
-#include <QFileInfo>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QLabel>
-#include <QMessageBox>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QPlainTextEdit>
-#include <QProcess>
-#include <QRandomGenerator>
-#include <QSettings>
-#include <QStorageInfo>
-#include <QTextEdit>
-#include <QTimer>
-#include <QUrlQuery>
 #include <cstdint>
 
 ModsInformationWindow::ModsInformationWindow(QWidget *parent)
@@ -61,21 +41,25 @@ void ModsInformationWindow::displayModInfo(
 }
 
 void ModsInformationWindow::queryAndDisplayModInfo() {
-    QString gamePath = ArkSEModpackGlobals::MainWindowInstance->gamePathQuery->text().trimmed();
-    QString modsDirectory = gamePath + "/Mods";
-    QDir modsDir(modsDirectory);
-    QStringList modDirs = modsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    totalRequests = modDirs.size();
-    receivedResponses = 0;
-    allModInfo.clear();
-    for (const QString &modDir : modDirs) {
-        QString modId = modDir;
-        QString url = QString("https://steamcommunity.com/sharedfiles/filedetails/?id=%1").arg(modId);
-        QNetworkRequest request(url);
-        QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-        QNetworkReply *reply = manager->get(request);
-        connect(manager, &QNetworkAccessManager::finished, this, &ModsInformationWindow::onNetworkReply);
-    }
+  QString gamePath =
+      ArkSEModpackGlobals::MainWindowInstance->gamePathQuery->text().trimmed();
+  QString modsDirectory = gamePath + "/Mods";
+  QDir modsDir(modsDirectory);
+  QStringList modDirs = modsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+  totalRequests = modDirs.size();
+  receivedResponses = 0;
+  allModInfo.clear();
+  for (const QString &modDir : modDirs) {
+    QString modId = modDir;
+    QString url =
+        QString("https://steamcommunity.com/sharedfiles/filedetails/?id=%1")
+            .arg(modId);
+    QNetworkRequest request(url);
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    QNetworkReply *reply = manager->get(request);
+    connect(manager, &QNetworkAccessManager::finished, this,
+            &ModsInformationWindow::onNetworkReply);
+  }
 }
 void ModsInformationWindow::onNetworkReply(QNetworkReply *reply) {
   QString url = reply->url().toString();

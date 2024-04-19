@@ -1,8 +1,6 @@
 #include <ArkModIC/utils/ArkSEModpackGlobals.h>
 #include <ArkModIC/utils/ArkUtils.h>
-#include <QFile>
-#include <QSettings>
-#include <QString>
+#include <ArkModIC/utils/QTINCLUDE.h>
 #include <Shlobj.h>
 #include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>

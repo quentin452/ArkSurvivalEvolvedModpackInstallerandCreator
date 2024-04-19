@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#include <QString>
+#include <ArkModIC/utils/QTINCLUDE.h>
 #include <string>
 class Configuration {
 
@@ -17,7 +17,6 @@ public:
                                                bool &backupMods);
   static void saveCheckboxStatesToConfigFile(bool deleteMods, bool backupMods);
   static void saveSettingsToConfigFile(const QString &gamePath);
-
 
 private:
   static std::string CONFIG_FILE_PATH;

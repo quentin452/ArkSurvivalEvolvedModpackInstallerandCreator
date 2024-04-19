@@ -1,8 +1,6 @@
 #include <ArkModIC/utils/ArkUtils.h>
 #include <ArkModIC/utils/Configuration.h>
-#include <QFile>
-#include <QSettings>
-#include <QString>
+#include <ArkModIC/utils/QTINCLUDE.h>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
 #include <windows.h>
 ArkUtils utils;

@@ -1,14 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
+#include <ArkModIC/utils/QTINCLUDE.h>
 #include <ArkModIC/windows/modsinformationwindow.h>
 #include <ArkModIC/windows/updatehandlerwithqwindow.h>
-#include <QCloseEvent>
-#include <QLineEdit>
-#include <QMainWindow>
-#include <QNetworkReply>
-#include <QProcess>
 #include <string>
-
 
 namespace Ui {
 class MainWindow;

@@ -1,10 +1,7 @@
 #ifndef WINDOWUTILS_H
 #define WINDOWUTILS_H
 
-#include <QLineEdit>
-#include <QMainWindow>
-#include <QObject>
-#include <QProcess>
+#include <ArkModIC/utils/QTINCLUDE.h>
 #include <string>
 
 class WindowUtils : public QObject {

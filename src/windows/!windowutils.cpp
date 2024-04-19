@@ -1,19 +1,10 @@
 #include <ArkModIC/utils/ArkSEModpackGlobals.h>
+#include <ArkModIC/utils/QTINCLUDE.h>
 #include <ArkModIC/windows/!windowutils.h>
-#include <QDebug>
-#include <QDir>
-#include <QDirIterator>
-#include <QFileDialog>
-#include <QFileInfo>
-#include <QMessageBox>
-#include <QProcess>
-#include <QRandomGenerator>
-#include <QSettings>
-#include <QStorageInfo>
-#include <QTimer>
 #include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
 #include <ThreadedLoggerForCPP/LoggerThread.hpp>
+
 
 WindowUtils::WindowUtils() {}
 

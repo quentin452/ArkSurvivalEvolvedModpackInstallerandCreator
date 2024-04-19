@@ -1,6 +1,5 @@
 #include <ArkModIC/utils/ArkModICWindowUtils.h>
-#include <QDir>
-#include <QFileInfo>
+#include <ArkModIC/utils/QTINCLUDE.h>
 
 quint64 ArkModICWindowUtils::getFolderSize(const QString &folderPath) {
   quint64 size = 0;

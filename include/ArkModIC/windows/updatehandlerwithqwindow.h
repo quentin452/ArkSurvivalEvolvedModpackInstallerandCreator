@@ -1,8 +1,6 @@
 #ifndef UPDATEHANDLER_H
 #define UPDATEHANDLER_H
-#include <QMainWindow>
-#include <QObject>
-#include <QTimer>
+#include <ArkModIC/utils/QTINCLUDE.h>
 
 class UpdateHandlerWithQWindow : public QMainWindow {
   Q_OBJECT

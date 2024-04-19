@@ -10,27 +10,10 @@
 #include <ArkModIC/utils/ArkModICWindowUtils.h>
 #include <ArkModIC/utils/ArkSEModpackGlobals.h>
 #include <ArkModIC/utils/Configuration.h>
+#include <ArkModIC/utils/QTINCLUDE.h>
 #include <ArkModIC/windows/!windowutils.h>
 #include <ArkModIC/windows/mainwindow.h>
 #include <ArkModIC/windows/modsinformationwindow.h>
-#include <QDebug>
-#include <QDir>
-#include <QDirIterator>
-#include <QFileDialog>
-#include <QFileInfo>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QMessageBox>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QProcess>
-#include <QRandomGenerator>
-#include <QSettings>
-#include <QStorageInfo>
-#include <QTimer>
-#include <QUrlQuery>
 #include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
 #include <ThreadedLoggerForCPP/LoggerThread.hpp>
@@ -38,6 +21,7 @@
 #include <filesystem>
 #include <iostream>
 #include <lmcons.h>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : UpdateHandlerWithQWindow(parent), ui(new Ui::MainWindow) {
