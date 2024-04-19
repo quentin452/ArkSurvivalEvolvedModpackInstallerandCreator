@@ -45,16 +45,11 @@ void ModsInformationWindow::updateCode() {
 
 void ModsInformationWindow::displayModInfo(
     const QMap<uint64_t, QString> &modInfoMap) {
-  // Supprimer les widgets individuels de modLabels
   for (auto label : modLabels.values()) {
     delete label;
   }
   modLabels.clear();
-
-  // Create a new vertical layout
   QVBoxLayout *verticalLayout = new QVBoxLayout();
-
-  // Add each mod label directly to the vertical layout
   for (auto it = modInfoMap.begin(); it != modInfoMap.end(); ++it) {
     QString labelText = QString("Mod ID: %1, Mod Title: %2")
                             .arg(QString::number(it.key()), it.value());
@@ -62,42 +57,27 @@ void ModsInformationWindow::displayModInfo(
     verticalLayout->addWidget(label);
     modLabels.insert(it.key(), label);
   }
-  // Set the new vertical layout to modColumnsLayout
   ui->modColumnsLayout->addLayout(verticalLayout);
 }
+
 void ModsInformationWindow::queryAndDisplayModInfo() {
-  QString modsList =
-      ArkSEModpackGlobals::MainWindowInstance->modsSteamIdListQuery->text()
-          .trimmed();
-  QStringList modIds = modsList.split(",");
-  modIds.removeAll("");
-
-  // Créer une carte pour associer les ID de mod aux réponses réseau
-  QMap<QString, QNetworkReply *> modIdToReplyMap;
-
-  for (const QString &modId : modIds) {
-    QString url =
-        QString("https://steamcommunity.com/sharedfiles/filedetails/?id=%1")
-            .arg(modId);
-    QNetworkRequest request(url);
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-
-    // Associer chaque ID de mod à sa réponse réseau
-    QNetworkReply *reply = manager->get(request);
-    modIdToReplyMap[modId] = reply;
-
-    // Connecter la réponse au slot de traitement
-    connect(manager, &QNetworkAccessManager::finished, this,
-            &ModsInformationWindow::onNetworkReply);
-  }
-
-  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-      LogLevel::INFO, __FILE__, __LINE__,
-      "Querying and displaying mod information...");
+    QString gamePath = ArkSEModpackGlobals::MainWindowInstance->gamePathQuery->text().trimmed();
+    QString modsDirectory = gamePath + "/Mods";
+    QDir modsDir(modsDirectory);
+    QStringList modDirs = modsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    totalRequests = modDirs.size();
+    receivedResponses = 0;
+    allModInfo.clear();
+    for (const QString &modDir : modDirs) {
+        QString modId = modDir;
+        QString url = QString("https://steamcommunity.com/sharedfiles/filedetails/?id=%1").arg(modId);
+        QNetworkRequest request(url);
+        QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+        QNetworkReply *reply = manager->get(request);
+        connect(manager, &QNetworkAccessManager::finished, this, &ModsInformationWindow::onNetworkReply);
+    }
 }
-
 void ModsInformationWindow::onNetworkReply(QNetworkReply *reply) {
-  // Récupérer l'ID de mod correspondant à cette réponse
   QString url = reply->url().toString();
   QRegularExpression idRegex("\\b(id=)(\\d+)\\b");
   QRegularExpressionMatch match = idRegex.match(url);
@@ -106,12 +86,9 @@ void ModsInformationWindow::onNetworkReply(QNetworkReply *reply) {
     return;
   }
   QString modId = match.captured(2);
-
   if (reply->error() == QNetworkReply::NoError) {
     QByteArray responseData = reply->readAll();
     QString responseDataString = QString::fromUtf8(responseData);
-
-    // Recherche du titre du mod dans le HTML
     QString modTitle;
     int titleStartIndex = responseDataString.indexOf("<title>") + 7;
     int titleEndIndex = responseDataString.indexOf("</title>");
@@ -119,14 +96,10 @@ void ModsInformationWindow::onNetworkReply(QNetworkReply *reply) {
       modTitle = responseDataString.mid(titleStartIndex,
                                         titleEndIndex - titleStartIndex);
     }
-
-    // Afficher les informations du mod
-    QMap<uint64_t, QString> modInfoMap;
     bool conversionOK;
     uint64_t modIdValue = modId.toULongLong(&conversionOK);
     if (conversionOK) {
-      modInfoMap[modIdValue] = modTitle;
-      displayModInfo(modInfoMap);
+      allModInfo[modIdValue] = modTitle;
     } else {
       QString errorMessage = "Failed to parse mod ID from URL: " + url;
       ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
@@ -138,7 +111,9 @@ void ModsInformationWindow::onNetworkReply(QNetworkReply *reply) {
     ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
         LogLevel::ERRORING, __FILE__, __LINE__, errorMessage.toStdString());
   }
-
-  // Supprimer la réponse une fois traitée
   reply->deleteLater();
+  receivedResponses++;
+  if (receivedResponses == totalRequests) {
+    displayModInfo(allModInfo);
+  }
 }

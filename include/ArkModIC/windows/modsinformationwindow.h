@@ -43,6 +43,9 @@ public:
 private:
   Ui::ModsInformationWindow *ui;
   QMap<uint64_t, QLabel *> modLabels;
+  QMap<uint64_t, QString> allModInfo;
+  int totalRequests = 0;
+  int receivedResponses = 0;
 private slots:
   void onNetworkReply(QNetworkReply *reply);
 };
