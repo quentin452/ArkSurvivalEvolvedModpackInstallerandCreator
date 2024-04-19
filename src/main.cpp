@@ -86,6 +86,12 @@ bool elevatePrivileges(const char *exePath) {
 int main(int argc, char *argv[]) {
   terminatePreviousInstances();
   initLoggerThread();
+  // if (!QSslSocket::supportsSsl()) {
+  //  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+  //       LogLevel::WARNING, __FILE__, __LINE__,
+  //      "SSL not supported!");
+  //  return 1;
+  //}
   char exePath[MAX_PATH];
   GetModuleFileNameA(nullptr, exePath, MAX_PATH);
   if (!elevatePrivileges(exePath)) {
@@ -105,7 +111,8 @@ int main(int argc, char *argv[]) {
   }
   try {
     ArkSEModpackGlobals::MainWindowInstance = new MainWindow();
-    ArkSEModpackGlobals::ModInformationWindowInstance = new ModsInformationWindow();
+    ArkSEModpackGlobals::ModInformationWindowInstance =
+        new ModsInformationWindow();
     ArkSEModpackGlobals::MainWindowInstance->show();
     ArkSEModpackGlobals::ModDownloaderInstance = new ModDownloader();
     ArkSEModpackGlobals::WindowUtilsInstance = new WindowUtils();

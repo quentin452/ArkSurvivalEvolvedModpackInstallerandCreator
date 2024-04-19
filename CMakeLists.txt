@@ -22,7 +22,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_PREFIX_PATH $ENV{QTDIR})
-find_package(Qt6 COMPONENTS Core Network Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Core Network Widgets NetworkAuth REQUIRED)
 
 #=================== INCLUSION OF Project Files ====================#
 set(FORMS_DIR "${CMAKE_SOURCE_DIR}/forms")
@@ -69,6 +69,7 @@ set(Qt_Plugins_Path $ENV{QTDIR}/plugins)
 set(DLL_List
     "${Qt_Bin_Path}/Qt6Core.dll"
     "${Qt_Bin_Path}/Qt6Network.dll"
+    "${Qt_Bin_Path}/Qt6NetworkAuth.dll"
     "${Qt_Bin_Path}/Qt6Widgets.dll"
     "${Qt_Bin_Path}/Qt6Gui.dll"
 )
@@ -77,7 +78,8 @@ set(DLL_List
 set(Plugins_List
     "platforms"
     "styles"
-    # Ajoutez d'autres répertoires de plugins si nécessaire
+    "tls"
+    "networkinformation"
 )
 
 # Chemin de destination (dossier de sortie de l'exécutable)
@@ -113,7 +115,7 @@ foreach(Plugin ${Plugins_List})
 endforeach()
 
 #===================== LINKING LIBRARIES =======================#
-target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Network Qt6::Widgets)
+target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Network Qt6::Widgets Qt6::NetworkAuth)
 
 #===================== GENERATE COMPILATIONS DATABASE =======================#
 set(common_compile_options

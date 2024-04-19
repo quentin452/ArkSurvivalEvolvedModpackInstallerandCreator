@@ -1,6 +1,7 @@
 #ifndef MODSINFORMATIONWINDOW_H
 #define MODSINFORMATIONWINDOW_H
 
+#include <ArkModIC/windows/updatehandlerwithqwindow.h>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
@@ -28,22 +29,22 @@ class ModsInformationWindow;
 }
 QT_END_NAMESPACE
 
-class ModsInformationWindow : public QMainWindow {
+class ModsInformationWindow : public UpdateHandlerWithQWindow {
   Q_OBJECT
 
 public:
   explicit ModsInformationWindow(QWidget *parent = nullptr);
   ~ModsInformationWindow();
 
-  void displayModInfo(const QStringList &modInfoList);
-  void update();
+  void displayModInfo(const QMap<uint64_t, QString> &modInfoMap);
+  void updateCode() override;
   void queryAndDisplayModInfo();
 
 private:
   Ui::ModsInformationWindow *ui;
 
 private slots:
-  void onNetworkReply(QNetworkReply *reply);
+  void onNetworkReplyonNetworkReply(QNetworkReply *reply);
 };
 
 #endif // MODSINFORMATIONWINDOW_H

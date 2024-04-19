@@ -24,13 +24,13 @@
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QUrlQuery>
 #include <QNetworkRequest>
 #include <QProcess>
 #include <QRandomGenerator>
 #include <QSettings>
 #include <QStorageInfo>
 #include <QTimer>
+#include <QUrlQuery>
 #include <ThreadedLoggerForCPP/LoggerFileSystem.hpp>
 #include <ThreadedLoggerForCPP/LoggerGlobals.hpp>
 #include <ThreadedLoggerForCPP/LoggerThread.hpp>
@@ -40,7 +40,7 @@
 #include <lmcons.h>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow) {
+    : UpdateHandlerWithQWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
   QString gamePath, modsList;
   bool deleteMods, backupMods;
@@ -60,10 +60,6 @@ MainWindow::MainWindow(QWidget *parent)
 
   setupConnections();
 
-  QTimer *timer = new QTimer(this);
-  connect(timer, &QTimer::timeout, this, &MainWindow::update);
-  timer->start(1000);
-
   QString lastUsedModsFile;
   Configuration::readLastUsedModsFileFromConfig(lastUsedModsFile);
   if (!lastUsedModsFile.isEmpty()) {
@@ -74,7 +70,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::setupConnections() {
   connect(ui->goToModsInformationButton, &QPushButton::clicked, this, [=]() {
-    WindowUtils::SetCurrentWindow(this, ArkSEModpackGlobals::ModInformationWindowInstance);
+    WindowUtils::SetCurrentWindow(
+        this, ArkSEModpackGlobals::ModInformationWindowInstance);
   });
   connect(ui->browseButton, &QPushButton::clicked, this,
           &MainWindow::onBrowseButtonClicked);
@@ -101,10 +98,12 @@ void MainWindow::setupConnections() {
 
 MainWindow::~MainWindow() { delete ui; }
 
-void MainWindow::update() {
-  resetModsFileComboBox();
-  updateBackupInfo();
-  updateModsInfo();
+void MainWindow::updateCode() {
+  if (this->isActiveWindow()) {
+    resetModsFileComboBox();
+    updateBackupInfo();
+    updateModsInfo();
+  }
 }
 void MainWindow::onDeleteModsCheckBoxStateChanged(int state) {
   bool deleteMods = (state == Qt::Checked);

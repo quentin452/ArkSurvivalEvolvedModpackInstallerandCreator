@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-
 #include <ArkModIC/windows/modsinformationwindow.h>
+#include <ArkModIC/windows/updatehandlerwithqwindow.h>
 #include <QCloseEvent>
 #include <QLineEdit>
 #include <QMainWindow>
@@ -9,11 +9,12 @@
 #include <QProcess>
 #include <string>
 
+
 namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow {
+class MainWindow : public UpdateHandlerWithQWindow {
   Q_OBJECT
 
 public:
@@ -49,7 +50,7 @@ private:
   bool BackupMods(const QString &path);
 
 private slots:
-  void update();
+  void updateCode() override;
 
 protected:
   void closeEvent(QCloseEvent *event) override {

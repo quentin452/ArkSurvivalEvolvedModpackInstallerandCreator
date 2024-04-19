@@ -24,7 +24,7 @@
 #include <cstdint>
 
 ModsInformationWindow::ModsInformationWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::ModsInformationWindow) {
+    : UpdateHandlerWithQWindow(parent), ui(new Ui::ModsInformationWindow) {
   ui->setupUi(this);
   connect(ui->goToMainWindowButton, &QPushButton::clicked, this, [=]() {
     WindowUtils::SetCurrentWindow(this,
@@ -34,12 +34,29 @@ ModsInformationWindow::ModsInformationWindow(QWidget *parent)
 
 ModsInformationWindow::~ModsInformationWindow() { delete ui; }
 
-void ModsInformationWindow::update() { queryAndDisplayModInfo(); }
+void ModsInformationWindow::updateCode() {
+  if (this->isActiveWindow()) {
+    queryAndDisplayModInfo();
+  }
+}
 
-void ModsInformationWindow::displayModInfo(const QStringList &modInfoList) {
+void ModsInformationWindow::displayModInfo(
+    const QMap<uint64_t, QString> &modInfoMap) {
   ui->textEdit->clear();
-  for (const QString &modInfo : modInfoList) {
+  if (modInfoMap.isEmpty()) {
+    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+        LogLevel::INFO, __FILE__, __LINE__, "Mod information map is empty.");
+    return;
+  }
+  ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+      LogLevel::INFO, __FILE__, __LINE__, "Displaying mod information...");
+  for (auto it = modInfoMap.begin(); it != modInfoMap.end(); ++it) {
+    QString modInfo = QString("Mod ID: %1, Mod Title: %2")
+                          .arg(QString::number(it.key()), it.value());
     ui->textEdit->append(modInfo);
+    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+        LogLevel::INFO, __FILE__, __LINE__,
+        "Mod information displayed: " + modInfo.toStdString());
   }
 }
 
@@ -51,17 +68,9 @@ void ModsInformationWindow::queryAndDisplayModInfo() {
   modIds.removeAll("");
 
   for (const QString &modId : modIds) {
-    uint64_t workshopId =
-        modId.toULongLong(); // Déclarer workshopId comme uint64_t
-    QUrl url("https://api.steampowered.com/ISteamRemoteStorage/"
-             "GetPublishedFileDetails/v1/");
-    QUrlQuery query;
-    query.addQueryItem("itemcount", "1");
-    query.addQueryItem(
-        "publishedfileids[0]",
-        QString::number(workshopId)); // Supprimer le troisième argument
-    url.setQuery(query);
-
+    QString url =
+        QString("https://steamcommunity.com/sharedfiles/filedetails/?id=%1")
+            .arg(modId);
     QNetworkRequest request(url);
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     connect(manager, &QNetworkAccessManager::finished, this,
@@ -77,37 +86,38 @@ void ModsInformationWindow::queryAndDisplayModInfo() {
 void ModsInformationWindow::onNetworkReply(QNetworkReply *reply) {
   if (reply->error() == QNetworkReply::NoError) {
     QByteArray responseData = reply->readAll();
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
+    QString responseDataString = QString::fromUtf8(responseData);
 
-    // Récupérer les détails du mod à partir de la réponse JSON
-    QJsonObject jsonObject = jsonDocument.object();
-    QJsonObject response = jsonObject["response"].toObject();
-    QJsonArray publishedFileDetails =
-        response["publishedfiledetails"].toArray();
+    // Recherche du titre du mod dans le HTML
+    QString modTitle;
+    int titleStartIndex = responseDataString.indexOf("<title>") + 7;
+    int titleEndIndex = responseDataString.indexOf("</title>");
+    if (titleStartIndex != -1 && titleEndIndex != -1) {
+      modTitle = responseDataString.mid(titleStartIndex,
+                                        titleEndIndex - titleStartIndex);
+    }
 
-    // Vérifier si des détails de mod ont été retournés
-    if (!publishedFileDetails.isEmpty()) {
-      QJsonObject modDetails = publishedFileDetails.first().toObject();
-      QString modTitle = modDetails["title"].toString();
-      uint64_t modId = modDetails["publishedfileid"].toDouble();
+    // Recherche de l'ID du mod dans l'URL
+    QString url = reply->url().toString();
+    int idStartIndex = url.lastIndexOf("=") + 1;
+    QString modIdString = url.mid(idStartIndex);
+    bool conversionOK;
+    uint64_t modId = modIdString.toULongLong(&conversionOK);
 
-      // Afficher les informations du mod (vous pouvez les enregistrer dans les
-      // journaux ici)
-      QString modInfo = QString("Mod ID: %1, Mod Title: %2")
-                            .arg(QString::number(modId), modTitle);
+    if (conversionOK) {
+      QMap<uint64_t, QString> modInfoMap;
+      modInfoMap[modId] = modTitle;
+      displayModInfo(modInfoMap);
+    } else {
+      QString errorMessage = "Failed to parse mod ID from URL: " + url;
       ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-          LogLevel::INFO, __FILE__, __LINE__, modInfo.toStdString());
-      ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-          LogLevel::INFO, __FILE__, __LINE__,
-          "Mod information displayed: " + modInfo.toStdString());
+          LogLevel::ERRORING, __FILE__, __LINE__, errorMessage.toStdString());
     }
   } else {
-    // Gérer les erreurs de requête réseau
+    QString errorMessage =
+        "Failed to query mod information: " + reply->errorString();
     ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-        LogLevel::ERRORING, __FILE__, __LINE__,
-        "Failed to query mod information: " +
-            reply->errorString().toStdString());
+        LogLevel::ERRORING, __FILE__, __LINE__, errorMessage.toStdString());
   }
-
   reply->deleteLater();
 }
