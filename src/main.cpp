@@ -95,11 +95,10 @@ int main(int argc, char *argv[]) {
   char exePath[MAX_PATH];
   GetModuleFileNameA(nullptr, exePath, MAX_PATH);
   if (!elevatePrivileges(exePath)) {
-    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-        LogLevel::ERRORING, __FILE__, __LINE__,
-        "Failed to get admin privileges");
-    exit(EXIT_FAILURE);
-    return 1;
+ ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+       LogLevel::ERRORING, __FILE__, __LINE__,
+       "Failed to get admin privileges");
+  return 1;
   }
   QApplication app(argc, argv);
   char *steamcmdPath = std::getenv("steamcmd");
@@ -120,9 +119,10 @@ int main(int argc, char *argv[]) {
       ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
           LogLevel::INFO, __FILE__, __LINE__, "Exiting application...");
       QObject::disconnect(&app, &QApplication::aboutToQuit, nullptr, nullptr);
-      ArkSEModpackGlobals::LoggerInstance.ExitLoggerThread();
+      ArkSEModpackGlobals::MainWindowInstance->close();
+      ArkSEModpackGlobals::ModInformationWindowInstance->close();
       qApp->quit();
-      exit(EXIT_SUCCESS);
+      ArkSEModpackGlobals::LoggerInstance.ExitLoggerThread();
     });
     ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
         LogLevel::INFO, __FILE__, __LINE__, "Starting application...");
