@@ -152,20 +152,16 @@ private:
   }
 
   std::string extractRelativePath(const std::string &filePath) {
-    std::string relativePath;
     size_t found = filePath.find_last_of("/\\");
     if (found != std::string::npos) {
-      std::string folder = filePath.substr(0, found);
-      size_t srcIndex = folder.rfind(LoggerGlobals::SrcProjectDirectory);
+      size_t srcIndex =
+          filePath.rfind(LoggerGlobals::SrcProjectDirectory, found);
       if (srcIndex != std::string::npos) {
-        relativePath = folder.substr(srcIndex) + filePath.substr(found);
-      } else {
-        relativePath = filePath.substr(found);
+        return filePath.substr(srcIndex);
       }
-    } else {
-      relativePath = filePath;
+      return filePath.substr(found);
     }
-    return relativePath;
+    return filePath;
   }
 
   template <typename T> void append(std::ostringstream &oss, const T &arg) {
