@@ -28,6 +28,8 @@ private:
   int totalRequests = 0;
   int receivedResponses = 0;
   QVBoxLayout *verticalLayout;
+  QLabel *internetStatusLabel;
+  QString extractImageUrlFromHtml(const QString &htmlContent);
 private slots:
   void onNetworkReply(QNetworkReply *reply);
 };
