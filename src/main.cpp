@@ -121,8 +121,8 @@ int main(int argc, char *argv[]) {
       QObject::disconnect(&app, &QApplication::aboutToQuit, nullptr, nullptr);
       ArkSEModpackGlobals::MainWindowInstance->close();
       ArkSEModpackGlobals::ModInformationWindowInstance->close();
-      qApp->quit();
       ArkSEModpackGlobals::LoggerInstance.ExitLoggerThread();
+      qApp->quit();
     });
     ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
         LogLevel::INFO, __FILE__, __LINE__, "Starting application...");
