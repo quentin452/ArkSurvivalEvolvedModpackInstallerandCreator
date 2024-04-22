@@ -120,6 +120,7 @@ int main(int argc, char *argv[]) {
       ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
           LogLevel::INFO, __FILE__, __LINE__, "Exiting application...");
       QObject::disconnect(&app, &QApplication::aboutToQuit, nullptr, nullptr);
+      ArkSEModpackGlobals::LoggerInstance.ExitLoggerThread();
       qApp->quit();
       exit(EXIT_SUCCESS);
     });
@@ -128,6 +129,7 @@ int main(int argc, char *argv[]) {
     return app.exec();
   } catch (const std::exception &e) {
     QMessageBox::critical(nullptr, "Error", e.what());
+    ArkSEModpackGlobals::LoggerInstance.ExitLoggerThread();
     return 1;
   }
 }
