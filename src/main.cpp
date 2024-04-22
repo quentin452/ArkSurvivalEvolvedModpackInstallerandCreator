@@ -95,10 +95,10 @@ int main(int argc, char *argv[]) {
   char exePath[MAX_PATH];
   GetModuleFileNameA(nullptr, exePath, MAX_PATH);
   if (!elevatePrivileges(exePath)) {
- ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
-       LogLevel::ERRORING, __FILE__, __LINE__,
-       "Failed to get admin privileges");
-  return 1;
+    ArkSEModpackGlobals::LoggerInstance.logMessageAsync(
+        LogLevel::ERRORING, __FILE__, __LINE__,
+        "Failed to get admin privileges");
+    return 1;
   }
   QApplication app(argc, argv);
   char *steamcmdPath = std::getenv("steamcmd");
