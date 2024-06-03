@@ -276,24 +276,27 @@ void MainWindow::updateBackupInfo() {
                                backupSizeText);
 }
 void MainWindow::updateModsInfo() {
-  QString modsFolderPath = gamePathQuery->text() + "/Mods/";
-  quint64 modsSize = ArkModICWindowUtils::getFolderSize(modsFolderPath);
-  QString modsSizeText = ArkModICWindowUtils::formatSize(modsSize);
-  ui->modsSizeLabel->setText("Mods Size from Ark Surival Evolved: " +
-                             modsSizeText);
+    QFuture<void> future = QtConcurrent::run([this] {
+        QElapsedTimer timer;
+        timer.start();
+        QString modsFolderPath = gamePathQuery->text() + "/Mods/";
+        quint64 modsSize = ArkModICWindowUtils::getFolderSize(modsFolderPath);
+        QString modsSizeText = ArkModICWindowUtils::formatSize(modsSize);
+        QString modsList = modsSteamIdListQuery->text().trimmed();
+        QStringList modIds = modsList.split(",");
+        modIds.removeAll("");
+        int numberOfMods = modIds.count();
+        QDir modsDir(modsFolderPath);
+        QStringList modFolders = modsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        int numberOfModFolders = modFolders.size();
 
-  QString modsList = modsSteamIdListQuery->text().trimmed();
-  QStringList modIds = modsList.split(",");
-  modIds.removeAll("");
-  int numberOfMods = modIds.count();
-  ui->numberOfModsLabel->setText("Number of Mods in the txt list: " +
-                                 QString::number(numberOfMods));
-
-  QDir modsDir(modsFolderPath);
-  QStringList modFolders = modsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-  int numberOfModFolders = modFolders.size();
-  ui->numberOfModFilesLabel->setText("Number of Mods in the Mods folder: " +
-                                     QString::number(numberOfModFolders));
+        // Use Qt::QueuedConnection to ensure the UI update is performed in the main thread
+        QMetaObject::invokeMethod(this, [=] {
+            ui->modsSizeLabel->setText("Mods Size from Ark Survival Evolved: " + modsSizeText);
+            ui->numberOfModsLabel->setText("Number of Mods in the txt list: " + QString::number(numberOfMods));
+            ui->numberOfModFilesLabel->setText("Number of Mods in the Mods folder: " + QString::number(numberOfModFolders));
+        }, Qt::QueuedConnection);
+    });
 }
 
 void MainWindow::onChooseModsFileButtonClicked() {

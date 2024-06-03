@@ -7,6 +7,11 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QObject>
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QtConcurrent/QtConcurrent>
+#include <QElapsedTimer>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
